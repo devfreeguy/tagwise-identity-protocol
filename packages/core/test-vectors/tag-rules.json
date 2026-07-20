@@ -1,0 +1,166 @@
+{
+  "description": "Canonical, language-neutral test vectors for TIP tag normalization, seed derivation, and PDA derivation. Shared source of truth for both the TypeScript and Rust implementations.",
+  "seedPrefix": "tag",
+  "minLength": 3,
+  "maxLength": 32,
+  "normalizationCases": [
+    {
+      "name": "lowercase-and-leading-at-strip",
+      "input": "@Daniel",
+      "expected": { "ok": true, "tag": "daniel" }
+    },
+    {
+      "name": "leading-at-strip-only",
+      "input": "@abc",
+      "expected": { "ok": true, "tag": "abc" }
+    },
+    {
+      "name": "no-at-plain-lowercase",
+      "input": "abc",
+      "expected": { "ok": true, "tag": "abc" }
+    },
+    {
+      "name": "at-not-at-start-rejected",
+      "input": "ab@cd",
+      "expected": { "ok": false, "reason": "BAD_AT" }
+    },
+    {
+      "name": "at-at-end-rejected",
+      "input": "abcd@",
+      "expected": { "ok": false, "reason": "BAD_AT" }
+    },
+    {
+      "name": "double-leading-at-rejected",
+      "input": "@@abc",
+      "expected": { "ok": false, "reason": "BAD_AT" }
+    },
+    {
+      "name": "space-invalid",
+      "input": "ab cde",
+      "expected": { "ok": false, "reason": "INVALID_CHAR" }
+    },
+    {
+      "name": "dot-invalid",
+      "input": "ab.cde",
+      "expected": { "ok": false, "reason": "INVALID_CHAR" }
+    },
+    {
+      "name": "hyphen-invalid",
+      "input": "ab-cde",
+      "expected": { "ok": false, "reason": "INVALID_CHAR" }
+    },
+    {
+      "name": "emoji-invalid",
+      "input": "abc😀de",
+      "expected": { "ok": false, "reason": "INVALID_CHAR" }
+    },
+    {
+      "name": "cyrillic-lookalike-invalid",
+      "input": "аbcde",
+      "expected": { "ok": false, "reason": "INVALID_CHAR" }
+    },
+    {
+      "name": "underscore-allowed",
+      "input": "ab_cde",
+      "expected": { "ok": true, "tag": "ab_cde" }
+    },
+    {
+      "name": "digits-allowed",
+      "input": "abc123",
+      "expected": { "ok": true, "tag": "abc123" }
+    },
+    {
+      "name": "empty-input",
+      "input": "",
+      "expected": { "ok": false, "reason": "EMPTY" }
+    },
+    {
+      "name": "at-only-input",
+      "input": "@",
+      "expected": { "ok": false, "reason": "EMPTY" }
+    },
+    {
+      "name": "too-short-length-2",
+      "input": "ab",
+      "expected": { "ok": false, "reason": "TOO_SHORT" }
+    },
+    {
+      "name": "min-length-3-accepted",
+      "input": "abc",
+      "expected": { "ok": true, "tag": "abc" }
+    },
+    {
+      "name": "max-length-32-accepted",
+      "input": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaz_9",
+      "expected": { "ok": true, "tag": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaz_9" }
+    },
+    {
+      "name": "too-long-length-33",
+      "input": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaz_9x",
+      "expected": { "ok": false, "reason": "TOO_LONG" }
+    },
+    {
+      "name": "too-short-precedes-invalid-char",
+      "input": "a.",
+      "expected": { "ok": false, "reason": "TOO_SHORT" }
+    },
+    {
+      "name": "too-long-precedes-invalid-char",
+      "input": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaz_9.",
+      "expected": { "ok": false, "reason": "TOO_LONG" }
+    },
+    {
+      "name": "all-digits-accepted",
+      "input": "123",
+      "expected": { "ok": true, "tag": "123" }
+    },
+    {
+      "name": "leading-underscore-accepted",
+      "input": "_abc",
+      "expected": { "ok": true, "tag": "_abc" }
+    },
+    {
+      "name": "trailing-underscore-accepted",
+      "input": "abc_",
+      "expected": { "ok": true, "tag": "abc_" }
+    },
+    {
+      "name": "tab-invalid",
+      "input": "ab\tcd",
+      "expected": { "ok": false, "reason": "INVALID_CHAR" }
+    },
+    {
+      "name": "newline-invalid",
+      "input": "ab\ncd",
+      "expected": { "ok": false, "reason": "INVALID_CHAR" }
+    }
+  ],
+  "seedCases": [
+    {
+      "name": "abc",
+      "tag": "abc",
+      "seedsHex": ["746167", "616263"]
+    },
+    {
+      "name": "daniel",
+      "tag": "daniel",
+      "seedsHex": ["746167", "64616e69656c"]
+    }
+  ],
+  "pdaCases": [
+    {
+      "name": "abc-under-system-program",
+      "tag": "abc",
+      "programId": "11111111111111111111111111111111",
+      "expectedAddress": "B7cZrsDEz7JuXtt2eCf2uDdPG5VtzYtV1gvzmbxeGP73",
+      "expectedBump": 255
+    },
+    {
+      "name": "daniel-under-system-program",
+      "tag": "daniel",
+      "programId": "11111111111111111111111111111111",
+      "expectedAddress": "DCrsNda56RTAoMtZD9ohErFXv5LCrhUmc1t2JaC5HhMm",
+      "expectedBump": 254
+    }
+  ]
+}
