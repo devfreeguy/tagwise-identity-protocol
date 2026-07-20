@@ -11,7 +11,7 @@ export const MIN_TAG_LENGTH = 3;
 /**
  * Maximum allowed length of a normalized tag.
  */
-export const MAX_TAG_LENGTH = 32;
+export const MAX_TAG_LENGTH = 20;
 
 /**
  * A normalized tag must match this pattern in full: lowercase ASCII letters,

@@ -2,7 +2,7 @@
   "description": "Canonical, language-neutral test vectors for TIP tag normalization, seed derivation, and PDA derivation. Shared source of truth for both the TypeScript and Rust implementations.",
   "seedPrefix": "tag",
   "minLength": 3,
-  "maxLength": 32,
+  "maxLength": 20,
   "normalizationCases": [
     {
       "name": "lowercase-and-leading-at-strip",
@@ -90,13 +90,13 @@
       "expected": { "ok": true, "tag": "abc" }
     },
     {
-      "name": "max-length-32-accepted",
-      "input": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaz_9",
-      "expected": { "ok": true, "tag": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaz_9" }
+      "name": "max-length-20-accepted",
+      "input": "aaaaaaaaaaaaaaaaaz_9",
+      "expected": { "ok": true, "tag": "aaaaaaaaaaaaaaaaaz_9" }
     },
     {
-      "name": "too-long-length-33",
-      "input": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaz_9x",
+      "name": "too-long-length-21",
+      "input": "aaaaaaaaaaaaaaaaaz_9x",
       "expected": { "ok": false, "reason": "TOO_LONG" }
     },
     {
@@ -106,7 +106,7 @@
     },
     {
       "name": "too-long-precedes-invalid-char",
-      "input": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaz_9.",
+      "input": "aaaaaaaaaaaaaaaaaz_9.",
       "expected": { "ok": false, "reason": "TOO_LONG" }
     },
     {
