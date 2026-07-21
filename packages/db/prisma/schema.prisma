@@ -1,0 +1,62 @@
+generator client {
+  provider               = "prisma-client"
+  output                 = "../src/generated/prisma"
+  runtime                = "nodejs"
+  moduleFormat           = "esm"
+  engineType             = "client"
+  generatedFileExtension = "ts"
+  importFileExtension    = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Moderation outcome for an identity. A third value like "review" can be
+// added later if a manual-review tier is introduced. Do not add it now.
+enum IdentityStatus {
+  active
+  blocked
+
+  @@map("identity_status")
+}
+
+model Identity {
+  id String @id @default(uuid(7))
+
+  // On-chain mirror fields, written only by the indexer.
+  tag    String @unique
+  owner  String
+  wallet String
+  bump   Int    @db.SmallInt
+
+  // Off-chain profile fields, written via the API.
+  displayName    String?  @map("display_name")
+  avatar         String?
+  bio            String?
+  preferredToken String?  @map("preferred_token")
+  verified       Boolean  @default(false)
+  merchant       Boolean  @default(false)
+
+  // Bookkeeping.
+  status          IdentityStatus @default(active)
+  lastAppliedSlot BigInt         @map("last_applied_slot")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([owner])
+  @@index([status])
+  @@map("identities")
+}
+
+model IndexerState {
+  // Fixed singleton key, e.g. "default". The application is responsible for
+  // using a stable, known id rather than relying on a generated one.
+  id String @id
+
+  lastProcessedSlot BigInt   @default(0) @map("last_processed_slot")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@map("indexer_state")
+}

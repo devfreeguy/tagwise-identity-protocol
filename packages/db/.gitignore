@@ -1,0 +1,2 @@
+# generated Prisma client, regenerated via `pnpm --filter @tip/db generate`
+src/generated/
