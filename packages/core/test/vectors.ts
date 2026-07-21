@@ -27,6 +27,17 @@ export type PdaCase = {
   expectedBump: number;
 };
 
+export type AccountDecodeCase = {
+  name: string;
+  bufferHex: string;
+  expected: {
+    owner: string;
+    wallet: string;
+    tag: string;
+    bump: number;
+  };
+};
+
 export type TagRulesVectors = {
   description: string;
   seedPrefix: string;
@@ -35,6 +46,11 @@ export type TagRulesVectors = {
   normalizationCases: NormalizationCase[];
   seedCases: SeedCase[];
   pdaCases: PdaCase[];
+  accountDecodeCases: {
+    description: string;
+    discriminatorHex: string;
+    cases: AccountDecodeCase[];
+  };
 };
 
 export const vectors: TagRulesVectors = JSON.parse(

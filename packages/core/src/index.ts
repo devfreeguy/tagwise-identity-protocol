@@ -19,3 +19,12 @@ export {
 export { buildTagSeeds } from "./seeds.js";
 
 export { deriveTagPda } from "./pda.js";
+
+export {
+  decodeTagAccount,
+  TAG_ACCOUNT_DISCRIMINATOR,
+  TAG_ACCOUNT_SIZE,
+  TagAccountDecodeError,
+  type TagAccount,
+  type TagAccountDecodeErrorReason,
+} from "./account.js";

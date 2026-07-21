@@ -162,5 +162,31 @@
       "expectedAddress": "DCrsNda56RTAoMtZD9ohErFXv5LCrhUmc1t2JaC5HhMm",
       "expectedBump": 254
     }
-  ]
+  ],
+  "accountDecodeCases": {
+    "description": "Real tip_registry TagAccount buffers, produced by serializing anchor_lang::AccountSerialize for the actual on-chain struct in a scratch Rust binary depending on the tip_registry crate as a path dependency (no hand-written bytes). See packages/core WAVE 2 notes for the generator source.",
+    "discriminatorHex": "ce8d5427a12ab9aa",
+    "cases": [
+      {
+        "name": "daniel",
+        "bufferHex": "ce8d5427a12ab9aa0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20c8c7c6c5c4c3c2c1c0bfbebdbcbbbab9b8b7b6b5b4b3b2b1b0afaeadacabaaa964616e69656c000000000000000000000000000006fd",
+        "expected": {
+          "owner": "4wBqpZM9xaSheZzJSMawUKKwhdpChKbZ5eu5ky4Vigw",
+          "wallet": "EWmDvi3hhz86LYi2NcD6YUp18DeeB5gDkwJzde3MgF9A",
+          "tag": "daniel",
+          "bump": 253
+        }
+      },
+      {
+        "name": "abc",
+        "bufferHex": "ce8d5427a12ab9aa05080b0e1114171a1d202326292c2f3235383b3e4144474a4d505356595c5f620b121920272e353c434a51585f666d747b828990979ea5acb3bac1c8cfd6dde4616263000000000000000000000000000000000003ff",
+        "expected": {
+          "owner": "Le9p4c4eUKnP8CymuibQAVWKRKqxDLRn4J1N2zNypiD",
+          "wallet": "kDVTwmUSuE1TtywrFnmjoJLaYHW77zT7CEuopwpTN7M",
+          "tag": "abc",
+          "bump": 255
+        }
+      }
+    ]
+  }
 }
