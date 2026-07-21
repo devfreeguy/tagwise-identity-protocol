@@ -12,17 +12,22 @@ const keypairData = JSON.parse(fs.readFileSync(keypairPath, "utf-8"));
 const wallet = Keypair.fromSecretKey(Uint8Array.from(keypairData));
 
 const programId = new PublicKey("4vcgrBuzoWw3kBanVTtx7Pi1v9WyTJBJQsFAQMqjJZjx");
-const TAG = process.env.TIP_TEST_TAG ?? "idxtest0";
+const TAG = process.env.TIP_TEST_TAG;
+if (!TAG) {
+  throw new Error("set TIP_TEST_TAG to the tag to update");
+}
+
+const newWalletKeypair = Keypair.generate();
 
 async function main() {
   const [tagPda] = PublicKey.findProgramAddressSync(
-    [Buffer.from("tag"), Buffer.from(TAG)],
+    [Buffer.from("tag"), Buffer.from(TAG as string)],
     programId
   );
 
-  console.log(`Registering @${TAG}...`);
+  console.log(`Updating wallet for @${TAG}...`);
   console.log(`Tag PDA: ${tagPda.toBase58()}`);
-  console.log(`Wallet: ${wallet.publicKey.toBase58()}`);
+  console.log(`New wallet: ${newWalletKeypair.publicKey.toBase58()}`);
 
   const idl = JSON.parse(
     fs.readFileSync("./target/idl/tip_registry.json", "utf-8")
@@ -37,15 +42,14 @@ async function main() {
   const program = new Program(idl, provider);
 
   const tx = await (program.methods as any)
-    .registerTag(TAG)
+    .updateWallet(newWalletKeypair.publicKey)
     .accounts({
       tagAccount: tagPda,
       owner: wallet.publicKey,
-      systemProgram: anchor.web3.SystemProgram.programId,
     })
     .rpc();
 
-  console.log(`Tag @${TAG} registered.`);
+  console.log(`Wallet updated for @${TAG}.`);
   console.log(`TX: https://explorer.solana.com/tx/${tx}?cluster=devnet`);
 }
 
