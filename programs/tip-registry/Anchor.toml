@@ -9,9 +9,12 @@ skip-lint = false
 [programs.localnet]
 tip_registry = "4vcgrBuzoWw3kBanVTtx7Pi1v9WyTJBJQsFAQMqjJZjx"
 
+[programs.devnet]
+tip_registry = "4vcgrBuzoWw3kBanVTtx7Pi1v9WyTJBJQsFAQMqjJZjx"
+
 [provider]
-cluster = "localnet"
-wallet = "~/.config/solana/id.json"
+cluster = "devnet"
+wallet = "~/.config/solana/tip-devnet-deployer.json"
 
 [scripts]
 test = "cargo test"
