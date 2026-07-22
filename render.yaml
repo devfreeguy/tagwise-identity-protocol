@@ -1,0 +1,198 @@
+# Render blueprint for TIP: apps/api as a Web Service, apps/indexer as a
+# Background Worker. Both live in the same pnpm/Turborepo monorepo and
+# depend on the workspace packages @tip/core and @tip/db, so every build
+# runs from the repository root, never from the app directory alone.
+#
+# This file is packaging and configuration only. No secret values are
+# stored here: every credential below is either "sync: false" (Render
+# prompts for it once in the dashboard and stores it encrypted there, never
+# in this file) or pulled from the shared envVarGroup, which itself only
+# holds non-secret shared values plus sync: false placeholders.
+#
+# Deliberately does NOT use `turbo run build` as the build command. Turbo
+# stays available for local development, but the deploy pipeline runs
+# explicit sequential pnpm --filter commands instead: deterministic, no
+# background daemon, no interactive telemetry prompt to hang a
+# non-interactive CI shell on. See DEPLOYMENT.md for the full reasoning.
+
+envVarGroups:
+  - name: tip-shared
+    envVars:
+      # Same Neon Postgres for both services. Use the POOLED (PgBouncer)
+      # connection string here, not the direct one. The direct string is
+      # for prisma migrate deploy only, run manually, never as this app's
+      # runtime DATABASE_URL. Also add a small explicit pool size (for
+      # example connection_limit=5) rather than leaving Prisma's default;
+      # see DEPLOYMENT.md's "Neon connection strings" section for why,
+      # and for an important caveat about connection_limit and the
+      # @prisma/adapter-pg driver adapter this codebase uses.
+      - key: DATABASE_URL
+        sync: false
+      # Same Upstash Redis for both services. Use the rediss:// (TLS) URL.
+      - key: REDIS_URL
+        sync: false
+      # CRITICAL: this value is shared from this one group specifically so
+      # apps/api and apps/indexer can never drift apart on it. apps/api
+      # writes the resolve cache key with this prefix (via @tip/core's
+      # buildResolveCacheKey); apps/indexer deletes that same key with its
+      # own copy of this prefix on every applied mirror change. If the two
+      # ever differ, every invalidation silently misses: stale resolve
+      # responses are served until TTL expires, and nothing anywhere raises
+      # an error. Do not override this per-service. Scope it per
+      # environment (for example "tip:devnet:", "tip:mainnet:") so
+      # multiple environments can safely share one Redis instance without
+      # their keys colliding.
+      - key: REDIS_KEY_PREFIX
+        value: "tip:devnet:"
+      # The deployed tip_registry program id. Same program on both
+      # services; only the cluster (devnet today) determines which
+      # deployment of this program id is live.
+      - key: TIP_REGISTRY_PROGRAM_ID
+        value: "4vcgrBuzoWw3kBanVTtx7Pi1v9WyTJBJQsFAQMqjJZjx"
+
+services:
+  - type: web
+    name: tip-api
+    runtime: node
+    plan: starter
+    region: virginia
+    branch: main
+    autoDeploy: true
+    buildCommand: >-
+      corepack enable &&
+      pnpm install --frozen-lockfile &&
+      pnpm --filter @tip/db build &&
+      pnpm --filter @tip/core build &&
+      pnpm --filter @tip/api build
+    startCommand: node apps/api/dist/main.js
+    healthCheckPath: /health
+    # Safe to scale horizontally if ever needed: every piece of shared
+    # state (auth nonces, rate limits, resolve cache) is Redis-backed, and
+    # the only mirror write path (PATCH /v1/identity/:tag) is a plain
+    # Postgres update with no in-process state. Unlike the indexer, running
+    # more than one instance of this service is not a correctness risk.
+    numInstances: 1
+    buildFilter:
+      paths:
+        - apps/api/**
+        - packages/core/**
+        - packages/db/**
+        - package.json
+        - pnpm-lock.yaml
+        - pnpm-workspace.yaml
+      ignoredPaths:
+        - apps/indexer/**
+    envVars:
+      - fromGroup: tip-shared
+      - key: NODE_ENV
+        value: production
+      # Render sets PORT itself for web services; the app already reads
+      # process.env.PORT (default 3000 only for local dev) and binds
+      # 0.0.0.0, so nothing further to configure here.
+      - key: JWT_SECRET
+        sync: false
+      - key: PAYMENT_LINK_BASE_URL
+        value: "https://tagwise.me"
+      - key: AUTH_DOMAIN
+        value: "tagwise.me"
+      - key: AUTH_TOKEN_TTL
+        value: "1h"
+      - key: AUTH_NONCE_TTL
+        value: "300"
+      - key: THROTTLE_TTL
+        value: "60"
+      - key: THROTTLE_LIMIT
+        value: "5"
+      # SECRET, not plain config: this value embeds the Helius api-key in
+      # the URL's query string, so it is credential material even though
+      # it looks like a plain endpoint. sync: false so it is only ever
+      # entered in the Render dashboard, never stored in this file.
+      #
+      # apps/api's ConfigService reads RPC_HTTP_URL directly only; unlike
+      # apps/indexer it has no HELIUS_API_KEY-based URL derivation. Set the
+      # full Helius devnet URL here (with the api-key query param) rather
+      # than just the bare key. See DEPLOYMENT.md for this asymmetry.
+      - key: RPC_HTTP_URL
+        sync: false
+      - key: REGISTER_THROTTLE_TTL
+        value: "60"
+      - key: REGISTER_THROTTLE_LIMIT
+        value: "3"
+      - key: IDENTITY_UPDATE_THROTTLE_TTL
+        value: "60"
+      - key: IDENTITY_UPDATE_THROTTLE_LIMIT
+        value: "10"
+      - key: RESOLVE_CACHE_TTL
+        value: "300"
+      - key: RESOLVE_CACHE_NEGATIVE_TTL
+        value: "30"
+
+  - type: worker
+    name: tip-indexer
+    runtime: node
+    plan: starter
+    region: virginia
+    branch: main
+    autoDeploy: true
+    buildCommand: >-
+      corepack enable &&
+      pnpm install --frozen-lockfile &&
+      pnpm --filter @tip/db build &&
+      pnpm --filter @tip/core build &&
+      pnpm --filter @tip/indexer build
+    startCommand: node apps/indexer/dist/main.js
+    # MUST stay exactly 1. Two running instances both subscribe to the same
+    # program account changes and both apply them to the mirror: writes are
+    # idempotent per slot (see apply-change.ts's guarded update), so this
+    # will not corrupt data, but two instances double the RPC subscription
+    # load, double the reconcile sweep frequency and cost, and can log
+    # confusingly duplicated "applied"/"created" lines that look like a
+    # bug. Render's Background Worker product has no built-in horizontal
+    # autoscaling, and this file adds none; numInstances is pinned here
+    # so it can never be raised by an automated process. Still, manually
+    # confirm in the Render dashboard before every deploy that this
+    # service shows exactly one instance and no scaling is configured; a
+    # dashboard-side override would not be visible in this file.
+    #
+    # There is deliberately NO `scaling` block on this service, anywhere in
+    # this file, for any service. Render documents that autoscaling takes
+    # precedence over numInstances, so adding a scaling block here would
+    # silently defeat this single-instance guarantee: numInstances: 1
+    # would stay in the file looking correct while autoscaling quietly
+    # overrode it. Do not add one.
+    numInstances: 1
+    # Give the shutdown sequence in apps/indexer/src/main.ts room to finish
+    # in order: abort the live subscription, stop the cron task, disconnect
+    # Postgres, then quit Redis. These run sequentially, not in parallel,
+    # and the last two are network round trips to external services (Neon,
+    # Upstash), so their combined worst case is additive, not just the
+    # slowest one. Render's default is 30 seconds; 60 gives roughly double
+    # the headroom for that chained teardown under network jitter, while
+    # staying well short of the 300 second ceiling so a genuinely hung
+    # process is still force-stopped in reasonable time.
+    maxShutdownDelaySeconds: 60
+    buildFilter:
+      paths:
+        - apps/indexer/**
+        - packages/core/**
+        - packages/db/**
+        - package.json
+        - pnpm-lock.yaml
+        - pnpm-workspace.yaml
+      ignoredPaths:
+        - apps/api/**
+    envVars:
+      - fromGroup: tip-shared
+      - key: NODE_ENV
+        value: production
+      # Derives both RPC_HTTP_URL and RPC_WSS_URL for Helius devnet
+      # automatically (see apps/indexer/src/config.ts). Set only this one
+      # key here, not RPC_HTTP_URL/RPC_WSS_URL directly.
+      - key: HELIUS_API_KEY
+        sync: false
+      - key: COMMITMENT
+        value: "finalized"
+      - key: RECONCILE_CRON
+        value: "0 3 * * *"
+      - key: LOG_LEVEL
+        value: "info"
