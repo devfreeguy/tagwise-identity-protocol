@@ -16,6 +16,21 @@
  * API instances sharing this one Redis: whichever instance runs this
  * script, Redis's own clock is authoritative.
  *
+ * Everything here is tracked in whole SECONDS, not milliseconds, even
+ * though the ttl/blockDuration arguments arrive in milliseconds (matching
+ * @nestjs/throttler's own convention). This is deliberate, not just a
+ * rounding shortcut: every real ttl/blockDuration this app configures is
+ * already a whole number of seconds (env vars like THROTTLE_TTL are
+ * seconds, multiplied by 1000 only to match the ms-typed option), so
+ * flooring to seconds loses no real precision. It also sidesteps a real bug
+ * found in ioredis-mock's Lua bridge (used for this repo's tests, not
+ * production Redis): millisecond epoch timestamps are large enough
+ * (13 digits) to overflow a 32-bit signed integer inside that bridge,
+ * silently wrapping to a negative number and making comparisons like
+ * `blockExpiresAt <= now` unreliable. Whole-second epoch values stay
+ * comfortably under that boundary until the year 2038, the same limit most
+ * 32-bit Unix time handling has.
+ *
  * KEYS[1] = the fully-namespaced bucket key
  * ARGV[1] = ttl in milliseconds
  * ARGV[2] = limit
@@ -24,12 +39,12 @@
  */
 export const THROTTLER_INCREMENT_LUA = `
 local key = KEYS[1]
-local ttl = tonumber(ARGV[1])
+local ttl = math.floor(tonumber(ARGV[1]) / 1000)
 local limit = tonumber(ARGV[2])
-local blockDuration = tonumber(ARGV[3])
+local blockDuration = math.floor(tonumber(ARGV[3]) / 1000)
 
 local time = redis.call('TIME')
-local now = tonumber(time[1]) * 1000 + math.floor(tonumber(time[2]) / 1000)
+local now = tonumber(time[1])
 
 local data = redis.call('HMGET', key, 'hits', 'expiresAt', 'blockExpiresAt', 'isBlocked')
 local hits = tonumber(data[1])
@@ -66,17 +81,17 @@ end
 
 redis.call('HMSET', key, 'hits', hits, 'expiresAt', expiresAt, 'blockExpiresAt', blockExpiresAt, 'isBlocked', isBlocked and '1' or '0')
 
-local expireAtPx = expiresAt
-if blockExpiresAt > expireAtPx then
-  expireAtPx = blockExpiresAt
+local expireAt = expiresAt
+if blockExpiresAt > expireAt then
+  expireAt = blockExpiresAt
 end
-local ttlForExpirePx = expireAtPx - now
-if ttlForExpirePx > 0 then
-  redis.call('PEXPIRE', key, ttlForExpirePx)
+local ttlForExpire = expireAt - now
+if ttlForExpire > 0 then
+  redis.call('EXPIRE', key, ttlForExpire)
 end
 
-local timeToExpire = math.ceil((expiresAt - now) / 1000)
-local timeToBlockExpire = math.ceil((blockExpiresAt - now) / 1000)
+local timeToExpire = expiresAt - now
+local timeToBlockExpire = blockExpiresAt - now
 if timeToBlockExpire < 0 then
   timeToBlockExpire = 0
 end

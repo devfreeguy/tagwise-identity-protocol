@@ -35,9 +35,13 @@ describe("AuthService (Redis-backed NonceStore)", () => {
   let config: ConfigService;
   let keypair: TestKeypair;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     config = makeConfigService();
-    nonceStore = new RedisNonceStore(new RedisMock() as never, config);
+    const redis = new RedisMock();
+    // ioredis-mock instances share one global in-memory store by default;
+    // without this, state can leak in from another test.
+    await redis.flushall();
+    nonceStore = new RedisNonceStore(redis as never, config);
     jwt = new JwtService({});
     authService = new AuthService(nonceStore, jwt, config);
     keypair = generateTestKeypair();

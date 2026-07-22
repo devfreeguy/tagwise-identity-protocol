@@ -1,8 +1,9 @@
 import { createDbClient } from "@tip/db";
 
-import { NoopCacheInvalidator } from "./cache-invalidator.js";
 import { loadConfig } from "./config.js";
 import { logger } from "./logger.js";
+import { createRedisClient } from "./redis.js";
+import { RedisCacheInvalidator } from "./redis-cache-invalidator.js";
 import { reconcile } from "./reconcile.js";
 import { createRpcClients } from "./rpc.js";
 import { scheduleReconcile } from "./scheduler.js";
@@ -12,7 +13,8 @@ async function main(): Promise<void> {
   const config = loadConfig();
   const db = createDbClient(config.databaseUrl);
   const { rpc, rpcSubscriptions } = createRpcClients(config);
-  const cacheInvalidator = new NoopCacheInvalidator(logger);
+  const redis = createRedisClient(config, logger);
+  const cacheInvalidator = new RedisCacheInvalidator(redis, config, logger);
 
   const runReconcile = () => reconcile({ rpc, db, cacheInvalidator, logger, programId: config.programId });
 
@@ -63,8 +65,19 @@ async function main(): Promise<void> {
             logger.warn({ err: error }, "error disconnecting db client");
           })
           .finally(() => {
-            logger.info("shutdown complete");
-            process.exit(0);
+            // quit() waits for in-flight commands and closes gracefully; if
+            // Redis is already unreachable that can hang, so disconnect() is
+            // the hard fallback that always resolves. Never blocks shutdown
+            // on a Redis problem.
+            redis
+              .quit()
+              .catch(() => {
+                redis.disconnect();
+              })
+              .finally(() => {
+                logger.info("shutdown complete");
+                process.exit(0);
+              });
           });
       });
   };

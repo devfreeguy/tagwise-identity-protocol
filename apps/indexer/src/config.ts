@@ -7,6 +7,8 @@ export type IndexerConfig = Readonly<{
   databaseUrl: string;
   commitment: "processed" | "confirmed" | "finalized";
   reconcileCron: string;
+  redisUrl: string;
+  redisKeyPrefix: string;
 }>;
 
 function requireEnv(name: string): string {
@@ -62,5 +64,15 @@ export function loadConfig(): IndexerConfig {
     databaseUrl: requireEnv("DATABASE_URL"),
     commitment: resolveCommitment(),
     reconcileCron: process.env.RECONCILE_CRON ?? "0 3 * * *",
+    // No default: cache invalidation is what keeps apps/api's resolve cache
+    // correct rather than merely eventually-consistent via TTL, so a
+    // missing REDIS_URL fails fast at startup instead of silently mirroring
+    // with invalidation disabled.
+    redisUrl: requireEnv("REDIS_URL"),
+    // MUST match apps/api's REDIS_KEY_PREFIX exactly. This app deletes the
+    // key apps/api's buildResolveCacheKey (from @tip/core) writes; if the
+    // prefixes differ, every delete misses silently and stale resolve
+    // responses are served until TTL expires, with no error anywhere.
+    redisKeyPrefix: process.env.REDIS_KEY_PREFIX ?? "tip:",
   };
 }

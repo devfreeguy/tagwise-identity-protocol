@@ -2,6 +2,7 @@ import RedisMock from "ioredis-mock";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { ConfigService } from "../src/config/config.service.js";
+import { redisKey } from "../src/redis/redis.js";
 import { RedisThrottlerStorage } from "../src/redis/redis-throttler-storage.js";
 
 function makeConfigService(): ConfigService {
@@ -16,8 +17,14 @@ describe("RedisThrottlerStorage", () => {
   let redis: RedisMock;
   let storage: RedisThrottlerStorage;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     redis = new RedisMock();
+    // ioredis-mock instances share one global in-memory store by default
+    // (as if every `new Redis()` connected to the same real server), and
+    // that sharing can reach across test files under a full suite run, not
+    // just within this one; without this, a stray key from elsewhere can
+    // make a test see unexpected state.
+    await redis.flushall();
     storage = new RedisThrottlerStorage(redis as never, makeConfigService());
   });
 
@@ -67,7 +74,18 @@ describe("RedisThrottlerStorage", () => {
     const blocked = await storage.increment("bucket-e", 60_000, limit, blockDurationMs, "default");
     expect(blocked.isBlocked).toBe(true);
 
-    await new Promise((resolve) => setTimeout(resolve, 700));
+    // Simulate the block having already expired by writing blockExpiresAt
+    // directly into the past, rather than sleeping in real time and relying
+    // on the Lua script's redis.call('TIME'): ioredis-mock's TIME command
+    // was measured to drift from Date.now() by several hundred milliseconds
+    // under load, which made a real-sleep version of this test flaky. This
+    // way the test is deterministic and fast, and still exercises the exact
+    // same reset branch of the Lua script (blockExpiresAt <= now).
+    const key = redisKey("tip:", "throttle", "bucket-e");
+    // The Lua script tracks time in whole seconds (see throttler-increment.lua.ts),
+    // so the stored value must be a seconds epoch, not a milliseconds one.
+    const wayInThePastSeconds = Math.floor(Date.now() / 1000) - 5;
+    await redis.hset(key, "blockExpiresAt", String(wayInThePastSeconds));
 
     const afterBlockExpiry = await storage.increment("bucket-e", 60_000, limit, blockDurationMs, "default");
     expect(afterBlockExpiry.isBlocked).toBe(false);

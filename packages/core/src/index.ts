@@ -30,3 +30,5 @@ export {
 } from "./account.js";
 
 export { isReservedTag, RESERVED_TAGS } from "./reserved.js";
+
+export { buildResolveCacheKey } from "./cache-key.js";

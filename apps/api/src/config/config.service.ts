@@ -18,6 +18,8 @@ export type AppConfig = Readonly<{
   identityUpdateThrottleLimit: number;
   redisUrl: string;
   redisKeyPrefix: string;
+  resolveCacheTtlSeconds: number;
+  resolveCacheNegativeTtlSeconds: number;
 }>;
 
 function requireEnv(name: string): string {
@@ -63,6 +65,13 @@ export class ConfigService {
       // close, so a missing REDIS_URL fails fast at startup instead.
       redisUrl: requireEnv("REDIS_URL"),
       redisKeyPrefix: process.env.REDIS_KEY_PREFIX ?? "tip:",
+      // TTL is a backstop only, not the correctness mechanism: active
+      // invalidation from apps/indexer is what keeps this fresh. Positive
+      // defaults to 5 minutes, negative to 30 seconds, short enough that a
+      // just-registered tag is never masked for long even if invalidation
+      // were somehow missed.
+      resolveCacheTtlSeconds: Number(process.env.RESOLVE_CACHE_TTL ?? "300"),
+      resolveCacheNegativeTtlSeconds: Number(process.env.RESOLVE_CACHE_NEGATIVE_TTL ?? "30"),
     };
   }
 }

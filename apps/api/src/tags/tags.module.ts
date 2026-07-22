@@ -4,9 +4,11 @@ import { ThrottlerModule } from "@nestjs/throttler";
 import { AuthModule } from "../auth/auth.module.js";
 import { ConfigService } from "../config/config.service.js";
 import { RedisThrottlerStorage } from "../redis/redis-throttler-storage.js";
-import { CACHE_READER, NoopCacheReader } from "./cache-reader.js";
-import { CHAIN_FALLBACK, NotFoundChainFallback } from "./chain-fallback.js";
+import { CACHE_READER } from "./cache-reader.js";
+import { CHAIN_FALLBACK } from "./chain-fallback.js";
 import { IdentityUpdateThrottlerGuard } from "./identity-update-throttler.guard.js";
+import { RedisCacheReader } from "./redis-cache-reader.js";
+import { SolanaChainFallback } from "./solana-chain-fallback.js";
 import { TagsController } from "./tags.controller.js";
 import { TagsService } from "./tags.service.js";
 import { WalletUpdateService } from "./wallet-update.service.js";
@@ -33,10 +35,10 @@ import { WalletUpdateService } from "./wallet-update.service.js";
     TagsService,
     WalletUpdateService,
     IdentityUpdateThrottlerGuard,
-    // Stage 2 swaps these two providers for a Redis-backed CacheReader and a
-    // real @solana/kit-based ChainFallback, without touching TagsService.
-    { provide: CACHE_READER, useClass: NoopCacheReader },
-    { provide: CHAIN_FALLBACK, useClass: NotFoundChainFallback },
+    // Stage 2b: Redis-backed CacheReader (resolve only, see
+    // RedisCacheReader) and a real @solana/kit-based ChainFallback.
+    { provide: CACHE_READER, useClass: RedisCacheReader },
+    { provide: CHAIN_FALLBACK, useClass: SolanaChainFallback },
   ],
 })
 export class TagsModule {}

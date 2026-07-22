@@ -1,10 +1,10 @@
 import { ForbiddenException, Inject, Injectable, NotFoundException } from "@nestjs/common";
-import { normalizeTag, type NormalizedTag } from "@tip/core";
+import { buildResolveCacheKey, normalizeTag, type NormalizedTag } from "@tip/core";
 import type { Identity, Prisma, PrismaClient } from "@tip/db";
 
 import { ConfigService } from "../config/config.service.js";
 import { DB_CLIENT } from "../db/db.module.js";
-import { CACHE_READER, type CacheReader } from "./cache-reader.js";
+import { CACHE_NEGATIVE, CACHE_READER, type CacheReader } from "./cache-reader.js";
 import { CHAIN_FALLBACK, type ChainFallback } from "./chain-fallback.js";
 import type { AvailabilityResponseDto } from "./dto/availability-response.dto.js";
 import type { IdentityResponseDto } from "./dto/identity-response.dto.js";
@@ -48,6 +48,18 @@ function rankOf(row: { tag: string; displayName: string | null }, query: string)
 
 @Injectable()
 export class TagsService {
+  // Single-flight for resolve() cache misses: a burst of concurrent requests
+  // for the same uncached tag shares one in-flight lookup instead of each
+  // hitting the mirror (and potentially the chain) independently. This is an
+  // in-process Map, not a distributed Redis lock: JS's single-threaded event
+  // loop makes the check-and-set in resolve() atomic with no extra Redis
+  // round trip, and a concurrent burst hitting one instance is exactly what
+  // this needs to dedupe; a burst spread across multiple instances behind a
+  // load balancer is already blunted by the load balancer itself, so the
+  // added complexity of a cross-instance lock (acquire, TTL, contention,
+  // unlock-on-error) is not proportionate for this stage.
+  private readonly inFlightResolves = new Map<string, Promise<ResolveResponseDto>>();
+
   constructor(
     @Inject(DB_CLIENT) private readonly db: PrismaClient,
     @Inject(CACHE_READER) private readonly cache: CacheReader,
@@ -68,19 +80,60 @@ export class TagsService {
   }
 
   async resolve(tag: NormalizedTag): Promise<ResolveResponseDto> {
-    const cacheKey = `resolve:${tag}`;
+    const cacheKey = buildResolveCacheKey(this.config.config.redisKeyPrefix, tag);
     const cached = await this.cache.get<ResolveResponseDto>(cacheKey);
+    if (cached === CACHE_NEGATIVE) {
+      // A cached negative result: the mirror (and chain) already answered
+      // "not found" recently, so this repeats that answer without touching
+      // either, blunting enumeration spam.
+      throw new NotFoundException(`tag ${presentTag(tag)} not found`);
+    }
     if (cached) {
       return cached;
     }
 
-    let row = await this.findActiveIdentity(tag);
-    if (!row) {
+    const existing = this.inFlightResolves.get(cacheKey);
+    if (existing) {
+      return existing;
+    }
+
+    const promise = this.resolveUncached(tag, cacheKey).finally(() => {
+      this.inFlightResolves.delete(cacheKey);
+    });
+    this.inFlightResolves.set(cacheKey, promise);
+    return promise;
+  }
+
+  private async resolveUncached(tag: NormalizedTag, cacheKey: string): Promise<ResolveResponseDto> {
+    // Queried directly (not via findActiveIdentity) so a blocked row can be
+    // told apart from a genuinely absent one: the mirror having a blocked
+    // row for this tag means it is NOT missing from the mirror, so the
+    // chain fallback must never be consulted for it. Consulting chain
+    // fallback for a blocked tag would resolve it via the cold path anyway,
+    // silently defeating moderation. A blocked row falls straight through
+    // to the negative-cache-and-404 path below, same as a truly absent tag.
+    const mirrorRow = await this.db.identity.findUnique({ where: { tag } });
+
+    let row: Identity | null = null;
+    // A row sourced from the chain fallback is an anomaly (the mirror is
+    // missing a tag that exists on-chain), so it is cached with the shorter
+    // negative TTL rather than the normal positive one: it should be
+    // re-verified against the mirror soon, once the indexer catches up.
+    let ttlOverride: number | undefined;
+
+    if (mirrorRow && mirrorRow.status === "active") {
+      row = mirrorRow;
+    } else if (!mirrorRow) {
       const fromChain = await this.chainFallback.lookup(tag);
-      if (!fromChain || fromChain.status !== "active") {
-        throw new NotFoundException(`tag ${presentTag(tag)} not found`);
+      if (fromChain && fromChain.status === "active") {
+        row = fromChain;
+        ttlOverride = this.config.config.resolveCacheNegativeTtlSeconds;
       }
-      row = fromChain;
+    }
+
+    if (!row) {
+      await this.cache.set(cacheKey, CACHE_NEGATIVE, this.config.config.resolveCacheNegativeTtlSeconds);
+      throw new NotFoundException(`tag ${presentTag(tag)} not found`);
     }
 
     const baseUrl = this.config.config.paymentLinkBaseUrl;
@@ -99,7 +152,7 @@ export class TagsService {
       },
     };
 
-    await this.cache.set(cacheKey, response);
+    await this.cache.set(cacheKey, response, ttlOverride);
     return response;
   }
 
@@ -122,7 +175,11 @@ export class TagsService {
   async identity(tag: NormalizedTag): Promise<IdentityResponseDto> {
     const cacheKey = `identity:${tag}`;
     const cached = await this.cache.get<IdentityResponseDto>(cacheKey);
-    if (cached) {
+    // identity is not cached this stage (see RedisCacheReader), so cached is
+    // always undefined in practice; the CACHE_NEGATIVE exclusion here is
+    // only to satisfy the type after CacheReader's get() was widened to
+    // support resolve()'s negative caching, not a behavior change.
+    if (cached && cached !== CACHE_NEGATIVE) {
       return cached;
     }
 
@@ -197,6 +254,24 @@ export class TagsService {
     }
 
     const updated = await this.db.identity.update({ where: { tag: params.tag }, data });
+
+    // Invalidate AFTER the write succeeds, never before: if the update
+    // above had thrown, a valid cache entry must not be evicted for a
+    // change that never happened. displayName, avatar, and preferredToken
+    // all appear in the cached resolve response; this is an off-chain
+    // write the indexer never observes, so nothing else would ever bust
+    // that cache entry. Uses the same buildResolveCacheKey as resolve()
+    // and as apps/indexer, never a hand-built key. cache.delete() fails
+    // soft on its own (see RedisCacheReader), so a Redis outage here can
+    // only leave the cache stale until TTL, never turn this successful
+    // write into an error response.
+    //
+    // If admin/moderation tooling later allows flipping verified,
+    // merchant, or status (also part of the resolve response), that path
+    // must invalidate the same key too.
+    const cacheKey = buildResolveCacheKey(this.config.config.redisKeyPrefix, params.tag);
+    await this.cache.delete(cacheKey);
+
     return this.toIdentityResponse(params.tag, updated);
   }
 

@@ -17,8 +17,11 @@ describe("RedisNonceStore", () => {
   let redis: RedisMock;
   let store: RedisNonceStore;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     redis = new RedisMock();
+    // ioredis-mock instances share one global in-memory store by default;
+    // without this, state can leak in from another test.
+    await redis.flushall();
     store = new RedisNonceStore(redis as never, makeConfigService());
   });
 

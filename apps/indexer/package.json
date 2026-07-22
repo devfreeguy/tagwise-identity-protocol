@@ -17,11 +17,14 @@
     "@tip/core": "workspace:*",
     "@tip/db": "workspace:*",
     "dotenv": "17.4.2",
+    "ioredis": "5.11.1",
     "node-cron": "4.6.0",
     "pino": "10.3.1"
   },
   "devDependencies": {
+    "@types/ioredis-mock": "8.2.7",
     "@types/node": "24.13.3",
+    "ioredis-mock": "8.13.1",
     "vitest": "4.1.10"
   }
 }
