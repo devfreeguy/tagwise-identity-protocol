@@ -6,8 +6,6 @@ all.
 
 **Full documentation:** [docs.tagwise.me](https://docs.tagwise.me)
 
-> This package is not published yet.
-
 ## Install
 
 ```bash
