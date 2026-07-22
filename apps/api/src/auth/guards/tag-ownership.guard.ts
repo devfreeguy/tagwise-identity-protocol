@@ -6,10 +6,10 @@ import {
   type CanActivate,
   type ExecutionContext,
 } from "@nestjs/common";
-import { normalizeTag } from "@tip/core";
 import type { PrismaClient } from "@tip/db";
 
 import { DB_CLIENT } from "../../db/db.module.js";
+import { normalizeTagParamOrThrow } from "../../tags/tag-param.js";
 import type { AuthenticatedRequest } from "./jwt-auth.guard.js";
 
 type TagOwnershipRequest = AuthenticatedRequest & { params: { tag?: string } };
@@ -17,13 +17,12 @@ type TagOwnershipRequest = AuthenticatedRequest & { params: { tag?: string } };
 /**
  * Requires the authenticated pubkey (set by JwtAuthGuard, which must run
  * first in the guard chain) to own the :tag route param. Read-only: looks
- * up the mirror via @tip/db and compares owner, never writes. A missing or
- * blocked tag is 404, matching how the public read endpoints already treat
- * them, never leaking that a blocked tag exists. A real, active tag owned
- * by someone else is 403.
- *
- * Not wired to any route yet beyond being available for stages 3b and 3c to
- * use with @UseGuards(JwtAuthGuard, TagOwnershipGuard).
+ * up the mirror via @tip/db and compares owner, never writes. Tag format is
+ * validated first, via the same normalizeTagParamOrThrow the public read
+ * endpoints use, so malformed input is 400 here too, consistent across the
+ * whole API rather than only on the routes this guard does not protect. A
+ * well-formed but missing or blocked tag is 404, never leaking that a
+ * blocked tag exists. A real, active tag owned by someone else is 403.
  */
 @Injectable()
 export class TagOwnershipGuard implements CanActivate {
@@ -36,17 +35,9 @@ export class TagOwnershipGuard implements CanActivate {
       throw new ForbiddenException("authentication required before ownership can be checked");
     }
 
-    const rawTag = request.params.tag;
-    if (!rawTag) {
-      throw new NotFoundException("tag not found");
-    }
+    const normalizedTag = normalizeTagParamOrThrow(request.params.tag ?? "");
 
-    const normalized = normalizeTag(rawTag);
-    if (!normalized.ok) {
-      throw new NotFoundException("tag not found");
-    }
-
-    const row = await this.db.identity.findUnique({ where: { tag: normalized.tag } });
+    const row = await this.db.identity.findUnique({ where: { tag: normalizedTag } });
     if (!row || row.status !== "active") {
       throw new NotFoundException("tag not found");
     }

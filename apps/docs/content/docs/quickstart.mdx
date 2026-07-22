@@ -1,0 +1,26 @@
+---
+title: Quickstart
+description: Install the SDK and resolve your first tag.
+---
+
+Install the SDK:
+
+```package-install
+npm i @tagwise/tip-sdk
+```
+
+Create a client and resolve a tag. No configuration is required: the
+client defaults to the public TIP API.
+
+```ts
+import { TipClient } from "@tagwise/tip-sdk";
+
+const client = new TipClient();
+const identity = await client.resolve("daniel");
+
+console.log(identity.wallet);
+```
+
+`resolve()` returns the wallet address, display name, and payment link for
+`@daniel`. See [Concepts](/docs/concepts) for what is happening underneath,
+or [Guides](/docs/guides) for registering a tag and editing a profile.

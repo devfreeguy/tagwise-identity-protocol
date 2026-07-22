@@ -33,7 +33,11 @@ export class UpdateIdentityRequestDto {
 
   // Avatar upload to R2/Cloudinary is a separate later concern; this stage
   // only accepts a pre-hosted https URL, never a file.
-  @ApiPropertyOptional({ nullable: true, description: "Absolute https URL to an avatar image" })
+  @ApiPropertyOptional({
+    nullable: true,
+    description: "Absolute https URL to an avatar image",
+    example: "https://cdn.tagwise.me/avatars/daniel.png",
+  })
   @IsOptional()
   @IsUrl({ protocols: ["https"], require_protocol: true, require_tld: false })
   @MaxLength(2048)

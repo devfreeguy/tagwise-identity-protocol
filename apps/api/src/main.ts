@@ -4,11 +4,12 @@ import "reflect-metadata";
 import { ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { FastifyAdapter, type NestFastifyApplication } from "@nestjs/platform-fastify";
-import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import { SwaggerModule } from "@nestjs/swagger";
 
 import { GlobalExceptionFilter } from "./common/global-exception.filter.js";
 import { ConfigService } from "./config/config.service.js";
 import { AppModule } from "./app.module.js";
+import { apiDocumentOptions, createApiDocumentConfig } from "./openapi/document-config.js";
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter());
@@ -21,15 +22,7 @@ async function bootstrap(): Promise<void> {
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
   app.enableShutdownHooks();
 
-  const document = SwaggerModule.createDocument(
-    app,
-    new DocumentBuilder()
-      .setTitle("TIP API")
-      .setDescription("Public read endpoints and wallet-signature auth for the TIP protocol")
-      .setVersion("1.0")
-      .addBearerAuth()
-      .build(),
-  );
+  const document = SwaggerModule.createDocument(app, createApiDocumentConfig(), apiDocumentOptions);
   SwaggerModule.setup("docs", app, document);
 
   const config = app.get(ConfigService);

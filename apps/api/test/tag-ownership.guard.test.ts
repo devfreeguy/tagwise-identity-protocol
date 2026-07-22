@@ -1,4 +1,4 @@
-import { ForbiddenException, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, NotFoundException } from "@nestjs/common";
 import type { PrismaClient } from "@tip/db";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -60,5 +60,25 @@ describe("TagOwnershipGuard", () => {
     const request = { authPubkey: OWNER, params: { tag: "daniel" } };
 
     await expect(guard.canActivate(makeExecutionContext(request))).rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  it("rejects with 400, not 404, when the tag format is invalid (too short)", async () => {
+    const request = { authPubkey: OWNER, params: { tag: "ab" } };
+
+    await expect(guard.canActivate(makeExecutionContext(request))).rejects.toBeInstanceOf(BadRequestException);
+    expect(db.identity.findUnique).not.toHaveBeenCalled();
+  });
+
+  it("rejects with 400, not 404, when the tag format is invalid (bad character)", async () => {
+    const request = { authPubkey: OWNER, params: { tag: "dan.eth" } };
+
+    await expect(guard.canActivate(makeExecutionContext(request))).rejects.toBeInstanceOf(BadRequestException);
+    expect(db.identity.findUnique).not.toHaveBeenCalled();
+  });
+
+  it("rejects with 400 when the tag param is missing entirely", async () => {
+    const request = { authPubkey: OWNER, params: {} };
+
+    await expect(guard.canActivate(makeExecutionContext(request))).rejects.toBeInstanceOf(BadRequestException);
   });
 });

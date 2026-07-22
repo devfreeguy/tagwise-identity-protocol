@@ -1,0 +1,37 @@
+---
+title: Source of truth and the mirror
+description: What lives on-chain, what lives off-chain, and who can write each.
+---
+
+TIP's data is deliberately split across two places with two different
+authorities.
+
+## On-chain (the program)
+
+The tag account stores exactly: `owner`, `wallet`, `tag`, `tag_len`, and
+`bump`. This is the source of truth. It only ever changes through a
+program instruction, signed by the owner: registering the tag, or
+updating the wallet. Nothing else can write it, not the API, not the
+indexer, not a database migration.
+
+## Off-chain (the mirror)
+
+Postgres stores everything the chain does not: `display name`, `avatar`,
+`bio`, `preferred token`, plus `verified` and `merchant` flags. These
+columns exist because they are either too expensive to put on-chain for
+data that changes often (a profile bio), or because they are
+protocol-external judgments (verification, merchant status) that the
+program has no opinion on. They are written through the API only
+(`PATCH /v1/identity/:tag` for the editable fields; `verified` and
+`merchant` are not writable by anyone through that endpoint at all, they
+are moderation-controlled).
+
+## Why the split holds together
+
+An indexer watches the program for account changes and applies them to
+the mirror, so the mirror's on-chain-shaped columns (`owner`, `wallet`,
+`tag`) always trace back to something the program actually emitted, never
+to a value the API invented. If the mirror or the API disappeared
+entirely, the on-chain fields would still be readable straight from the
+account; only the off-chain profile fields would be unavailable, since
+they were never stored anywhere but Postgres to begin with.

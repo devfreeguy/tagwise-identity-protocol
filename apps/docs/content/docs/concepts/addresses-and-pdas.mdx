@@ -1,0 +1,25 @@
+---
+title: Addresses and PDAs
+description: How a tag becomes an address, and why that makes uniqueness free.
+---
+
+Every registered tag lives at a Program Derived Address (PDA): an address
+computed deterministically from a set of seed bytes and the tip-registry
+program id, rather than one generated from a keypair. TIP derives this PDA
+from exactly two seeds, in order:
+
+1. the ASCII bytes of the fixed seed prefix `"tag"`
+2. the ASCII bytes of the tag's canonical form
+
+Because a PDA is a pure function of its seeds, `@daniel` can only ever
+derive to one address, on any client, in any language, forever. This is
+what makes uniqueness a property of the address itself rather than
+something a server has to check: there is no way for two different
+"daniel" accounts to exist, because there is only one address that
+`normalizeTag("daniel")` plus the seed prefix can ever produce. Registering
+a tag that already has an account at its derived address simply fails, the
+same way creating a file at a path that is already taken fails.
+
+This also means anyone, not just this project's own client, can compute
+where `@daniel`'s account lives and read it directly over RPC, with no API
+in between.

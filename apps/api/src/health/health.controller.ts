@@ -1,13 +1,14 @@
 import { Controller, Get, Inject } from "@nestjs/common";
-import { ApiOperation, ApiTags } from "@nestjs/swagger";
+import { ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import type { PrismaClient } from "@tip/db";
 
 import { DB_CLIENT } from "../db/db.module.js";
 import { REDIS_CLIENT, type ApiRedis } from "../redis/redis.js";
+import { HealthResponseDto } from "./dto/health-response.dto.js";
 
 type Reachability = "reachable" | "unreachable";
 
-@ApiTags("health")
+@ApiTags("Health")
 @Controller("health")
 export class HealthController {
   constructor(
@@ -16,8 +17,13 @@ export class HealthController {
   ) {}
 
   @Get()
-  @ApiOperation({ summary: "Liveness, DB-reachability, and Redis-reachability check" })
-  async check(): Promise<{ status: "ok"; db: Reachability; redis: Reachability }> {
+  @ApiOperation({
+    summary: "Check health",
+    description:
+      "Liveness check. Always responds 200; Postgres and Redis reachability are checked independently and reported separately, so one dependency being down never hides or fails the check for the other.",
+  })
+  @ApiOkResponse({ type: HealthResponseDto })
+  async check(): Promise<HealthResponseDto> {
     // Each dependency is checked independently so one being down never hides
     // or fails the check for the other; the endpoint itself always
     // responds, reporting each dependency's status distinctly.

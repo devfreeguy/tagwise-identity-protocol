@@ -1,0 +1,33 @@
+---
+title: Resolving without the API
+description: TIP is a protocol, not just a service; resolveOnChain proves it.
+---
+
+Every read method on `TipClient` goes through the public API by default.
+`resolveOnChain()` is the exception: it never calls the API at all.
+
+```ts
+const client = new TipClient({ rpcUrl: "https://api.devnet.solana.com" });
+const identity = await client.resolveOnChain("daniel");
+```
+
+Given an RPC endpoint, this derives `@daniel`'s PDA locally, fetches the
+account directly from the Solana validator, and decodes it, entirely
+independent of the TIP API, the Postgres mirror, or the Redis cache. If
+all three of those were down at once, this path still resolves the tag,
+because the program is the source of truth and this path reads it
+directly.
+
+This is why TIP is described as a protocol rather than a service: the
+service is a convenience layer, not a dependency.
+
+## What you lose on this path
+
+Only `tag`, `owner`, `wallet`, and `bump` are real on-chain data.
+`displayName`, `avatar`, `bio`, and `preferredToken` are mirror-only
+fields with nothing on-chain to read, so they always come back `null`.
+`verified` and `merchant` are moderation concepts with no on-chain
+equivalent and always come back `false`. If you need profile data, go
+through the regular API-backed `resolve()` instead; use `resolveOnChain()`
+when availability of the on-chain fields matters more than the profile
+extras.

@@ -1,0 +1,39 @@
+---
+title: Wallet authentication
+description: Challenge, sign, verify. The SDK never sees a secret key.
+---
+
+Every write (`register`, `updateWallet`, `updateProfile`) requires a
+connected session first. Connecting is a three-step challenge/response
+flow, and `connect()` runs all three for you:
+
+```ts
+const signer = {
+  publicKey: wallet.publicKey.toBase58(),
+  signMessage: (message: Uint8Array) => wallet.signMessage(message),
+};
+
+await client.connect(signer);
+```
+
+1. the SDK requests a single-use challenge message from
+   `POST /v1/auth/challenge`, addressed to the connecting pubkey
+2. it asks the `Signer` to sign the message's raw bytes
+3. it sends the signature to `POST /v1/auth/verify`, which checks it
+   against the pubkey and issues a session token
+
+## The `Signer` interface
+
+`Signer` is intentionally the smallest possible shape: a `publicKey` and a
+`signMessage()` function. That is the only thing this SDK ever asks a
+wallet to do. There is no code path anywhere in this SDK that accepts,
+stores, or transmits a private key; signing always happens inside the
+wallet, outside the SDK's control.
+
+## The nonce is single use
+
+The challenge message embeds a nonce that the server consumes atomically
+the first time it is verified. A second verification attempt with the
+same signed message fails, even if the signature is still mathematically
+valid, closing off replay: a captured challenge/signature pair is only
+ever useful once.

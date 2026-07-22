@@ -1,0 +1,21 @@
+---
+title: Introduction
+description: What TIP is and how its pieces fit together.
+---
+
+TIP (tagwise identity protocol) resolves a short `@tag` to a Solana wallet
+address, so paying someone means sending to `@daniel` instead of copying and
+checking a 44-character base58 address. A tag is registered once by its
+owner and then resolves the same way everywhere: through the public API,
+through the SDK, or directly from the chain.
+
+## Mental model
+
+The Solana program is the source of truth: it owns registration, ownership,
+and the wallet a tag currently points to. Postgres is a fast mirror of that
+on-chain state, kept in sync by an indexer watching the program for account
+changes. Redis is a fast cache in front of the mirror, invalidated the
+moment the mirror changes. Every one of these layers can be bypassed:
+if the API, the mirror, or the cache is unavailable, a tag can still be
+resolved by reading the Solana account directly, because the program, not
+the service, is authoritative.

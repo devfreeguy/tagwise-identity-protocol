@@ -8,30 +8,36 @@ export class IdentityResponseDto {
   @ApiProperty({ description: "The tag, presented with a leading @", example: "@daniel" })
   tag!: string;
 
-  @ApiProperty({ description: "Base58 pubkey of the tag owner" })
+  @ApiProperty({
+    description: "Base58 pubkey of the tag owner",
+    example: "5FHwkrdxntdK24hgQU8qgBjn35Y1zwhz1GZwCkP2akbP",
+  })
   owner!: string;
 
-  @ApiProperty({ description: "Base58 wallet address that receives payments" })
+  @ApiProperty({
+    description: "Base58 wallet address that receives payments",
+    example: "8L2Z3nSXbwoFhK9x9BEs6b1qhF6xEcNJ7T4NqmiWaeuf",
+  })
   wallet!: string;
 
-  @ApiProperty({ required: false, nullable: true })
+  @ApiProperty({ required: false, nullable: true, example: "Daniel" })
   displayName!: string | null;
 
-  @ApiProperty({ required: false, nullable: true })
+  @ApiProperty({ required: false, nullable: true, example: "https://cdn.tagwise.me/avatars/daniel.png" })
   avatar!: string | null;
 
-  @ApiProperty({ required: false, nullable: true })
+  @ApiProperty({ required: false, nullable: true, example: "Building on Solana" })
   bio!: string | null;
 
-  @ApiProperty({ required: false, nullable: true })
+  @ApiProperty({ required: false, nullable: true, example: "USDC" })
   preferredToken!: string | null;
 
-  @ApiProperty()
+  @ApiProperty({ example: false })
   verified!: boolean;
 
-  @ApiProperty()
+  @ApiProperty({ example: false })
   merchant!: boolean;
 
-  @ApiProperty()
+  @ApiProperty({ example: "2026-01-15T12:00:00.000Z" })
   createdAt!: Date;
 }

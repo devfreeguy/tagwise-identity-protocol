@@ -1,0 +1,63 @@
+/*
+ * TIP docs theme: a purple accent, matching the logo, mapped from the
+ * project's oklch palette onto Fumadocs UI's --color-fd-* variables (see
+ * fumadocs-ui/css/purple.css for the variable set this follows).
+ */
+@import "fumadocs-ui/css/lib/default-colors.css";
+
+@theme {
+  --color-fd-background: oklch(0.9684 0.0052 282.7);
+  --color-fd-foreground: oklch(0.2286 0.0385 283.3);
+  --color-fd-muted: oklch(94% 0.0017 282.61);
+  --color-fd-muted-foreground: oklch(55.17% 0.0034 282.61);
+  --color-fd-popover: oklch(100% 0.0005 282.61);
+  --color-fd-popover-foreground: oklch(0.2286 0.0385 283.3);
+  --color-fd-card: oklch(100% 0.0008 282.61);
+  --color-fd-card-foreground: oklch(0.2286 0.0385 283.3);
+  --color-fd-border: oklch(90% 0.0017 282.61);
+  --color-fd-primary: oklch(52% 0.2 282.61);
+  --color-fd-primary-foreground: oklch(99.11% 0 0);
+  --color-fd-secondary: oklch(95.24% 0.0014 282.61);
+  --color-fd-secondary-foreground: oklch(0.2286 0.0385 283.3);
+  --color-fd-accent: oklch(96% 0.03 282.61);
+  --color-fd-accent-foreground: oklch(21.03% 0.0059 282.61);
+  --color-fd-ring: oklch(52% 0.2 282.61);
+}
+
+@theme static {
+  --color-fd-info: oklch(62.3% 0.214 259.815);
+  --color-fd-warning: oklch(78.19% 0.159 75.78);
+  --color-fd-error: oklch(65.32% 0.2336 29.19);
+  --color-fd-success: oklch(73.29% 0.1942 154.26);
+}
+
+/*
+ * Dark surfaces, widened on purpose. The original mapping compressed
+ * card/secondary/muted/border into a ~4-point oklch lightness band
+ * (23.7 to 28), which reads as one muddy gray with no visible hierarchy,
+ * since the sidebar and cards sit almost directly on the page background.
+ * This scale spaces each step by several points instead: background is
+ * the darkest layer, card/popover sit clearly above it, secondary/muted
+ * sit a further step up (bumping saturation slightly, not just
+ * lightness, to accent/6 and border/32 which have a purple, not gray,
+ * cast), so hovered rows, code blocks, and dividers stay distinguishable
+ * from a plain card without any of them reading as pure gray.
+ */
+.dark {
+  --color-fd-background: oklch(15% 0.014 284.9);
+  --color-fd-foreground: oklch(99.11% 0.0017 282.61);
+  --color-fd-muted: oklch(24% 0.02 283);
+  --color-fd-muted-foreground: oklch(70.5% 0.0034 282.61);
+  --color-fd-popover: oklch(22% 0.016 284.9);
+  --color-fd-popover-foreground: oklch(99.11% 0.0017 282.61);
+  --color-fd-card: oklch(20% 0.016 284.9);
+  --color-fd-card-foreground: oklch(99.11% 0.0017 282.61);
+  --color-fd-border: oklch(32% 0.02 283);
+  --color-fd-primary: oklch(60% 0.19 285);
+  --color-fd-primary-foreground: oklch(99.11% 0 0);
+  --color-fd-secondary: oklch(24% 0.02 283);
+  --color-fd-secondary-foreground: oklch(99.11% 0.0017 282.61);
+  --color-fd-accent: oklch(26% 0.06 282.61);
+  --color-fd-accent-foreground: oklch(99.11% 0.0017 282.61);
+  --color-fd-ring: oklch(60% 0.19 285);
+}

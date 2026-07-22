@@ -1,0 +1,48 @@
+---
+title: Registering a tag
+description: The server builds the transaction; the user signs it and pays for it.
+---
+
+`register()` never submits anything on your behalf. It returns an
+**unsigned** transaction, and it is the connected wallet, not the SDK or
+the API, that signs and submits it. The user is the fee payer: they pay
+their own account rent (roughly 0.0018 SOL) and the network fee for this
+transaction, the same as any other Solana transaction they send.
+
+```ts
+const unsigned = await client.register({ tag: "daniel" });
+
+// Hand unsigned.transaction to the connected wallet exactly as returned.
+// signAndSendTransaction() is an optional convenience for a signer that
+// also exposes signTransaction (most wallet adapters do); the default
+// path is always to let the wallet's own adapter take it from here.
+const signature = await client.signAndSendTransaction(unsigned.transaction, signer);
+```
+
+`unsigned.transaction` is a base64-encoded wire transaction. `unsigned.pda`
+is the tag account's derived address, and `unsigned.lastValidBlockHeight`
+tells the wallet how long the blockhash it was built with stays valid.
+
+## Insufficient balance
+
+If the connected wallet cannot cover rent plus fees, the API responds
+`402 Payment Required` instead of returning a transaction, and the SDK
+surfaces this as `InsufficientBalanceError`, carrying the exact lamport
+amounts:
+
+```ts
+import { InsufficientBalanceError } from "@tagwise/tip-sdk";
+
+try {
+  await client.register({ tag: "daniel" });
+} catch (error) {
+  if (error instanceof InsufficientBalanceError) {
+    // error.requiredLamports, error.currentLamports, error.shortfallLamports
+    // are all bigint. Show the user exactly how much more SOL they need
+    // rather than a generic "transaction failed".
+  }
+}
+```
+
+Surface the shortfall directly, rather than a generic failure message: the
+user almost always just needs to fund their wallet before trying again.

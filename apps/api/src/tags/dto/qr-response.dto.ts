@@ -8,9 +8,12 @@ export class QrResponseDto {
   @ApiProperty({ description: "The tag, presented with a leading @", example: "@daniel" })
   tag!: string;
 
-  @ApiProperty({ description: "Base58 wallet address that should receive the payment" })
+  @ApiProperty({
+    description: "Base58 wallet address that should receive the payment",
+    example: "8L2Z3nSXbwoFhK9x9BEs6b1qhF6xEcNJ7T4NqmiWaeuf",
+  })
   wallet!: string;
 
-  @ApiProperty({ description: "PAYMENT_LINK_BASE_URL + /@ + tag" })
+  @ApiProperty({ description: "PAYMENT_LINK_BASE_URL + /@ + tag", example: "https://tagwise.me/@daniel" })
   paymentLink!: string;
 }

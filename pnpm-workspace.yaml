@@ -4,4 +4,9 @@ packages:
 allowBuilds:
   '@prisma/engines': true
   '@scarf/scarf': false
+  esbuild: true
   prisma: true
+  sharp: true
+minimumReleaseAgeExclude:
+  - fumadocs-core@16.12.0
+  - fumadocs-ui@16.12.0
