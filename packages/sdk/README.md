@@ -1,11 +1,12 @@
 # @tagwise/tip-sdk
 
-Client SDK for TIP (tagwise identity protocol): a thin, browser-safe client
+Client SDK for TIP (Tagwise Identity Protocol): a thin, browser-safe client
 for the TIP API, plus a direct-chain read path that works with no API at
 all.
 
-> The package name above is a placeholder pending confirmation before any
-> npm publish. This package is not published yet.
+**Full documentation:** [docs.tagwise.me](https://docs.tagwise.me)
+
+> This package is not published yet.
 
 ## Install
 
@@ -13,8 +14,9 @@ all.
 npm install @tagwise/tip-sdk
 ```
 
-Inside this monorepo, `packages/sdk` depends on `@tip/core` via
-`workspace:*`; nothing to install separately for local development.
+`@tip/core` (the tag-normalization and PDA logic) is bundled into this
+package's published output, not a runtime dependency; there is nothing
+else to install for it, in this monorepo or from npm.
 
 ## Quickstart: resolve a tag
 
@@ -229,3 +231,10 @@ normalizeTag("@Daniel"); // { ok: true, tag: "daniel" }
 - Read from or write to `localStorage` or any other browser storage.
 - Sign or submit a transaction unless you explicitly call `signAndSendTransaction`.
 - Silently re-sign or re-authenticate after a session expires.
+
+## Learn more
+
+Full documentation, including concepts (tags, PDAs, ownership), guides
+(registering a tag, wallet authentication, resolving without the API), and
+a generated API reference, lives at
+[docs.tagwise.me](https://docs.tagwise.me).
