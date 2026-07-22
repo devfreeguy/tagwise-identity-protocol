@@ -4,6 +4,12 @@ export type AppConfig = Readonly<{
   port: number;
   databaseUrl: string;
   paymentLinkBaseUrl: string;
+  jwtSecret: string;
+  authDomain: string;
+  authTokenTtl: string;
+  authNonceTtlSeconds: number;
+  throttleTtlSeconds: number;
+  throttleLimit: number;
 }>;
 
 function requireEnv(name: string): string {
@@ -28,6 +34,15 @@ export class ConfigService {
       port: Number(process.env.PORT ?? "3000"),
       databaseUrl: requireEnv("DATABASE_URL"),
       paymentLinkBaseUrl: process.env.PAYMENT_LINK_BASE_URL ?? "https://tagwise.me",
+      // No default: a weak or shared JWT secret would let anyone forge
+      // sessions, so this fails fast at startup rather than silently running
+      // insecurely.
+      jwtSecret: requireEnv("JWT_SECRET"),
+      authDomain: process.env.AUTH_DOMAIN ?? "tagwise.me",
+      authTokenTtl: process.env.AUTH_TOKEN_TTL ?? "1h",
+      authNonceTtlSeconds: Number(process.env.AUTH_NONCE_TTL ?? "300"),
+      throttleTtlSeconds: Number(process.env.THROTTLE_TTL ?? "60"),
+      throttleLimit: Number(process.env.THROTTLE_LIMIT ?? "5"),
     };
   }
 }

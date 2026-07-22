@@ -40,6 +40,7 @@ function makeFakeDb() {
 function makeConfigService(): ConfigService {
   process.env.DATABASE_URL = "postgresql://unused/for-tests";
   process.env.PAYMENT_LINK_BASE_URL = "https://tagwise.me";
+  process.env.JWT_SECRET = "test-secret-does-not-leave-this-process";
   return new ConfigService();
 }
 
