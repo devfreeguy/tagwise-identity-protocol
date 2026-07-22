@@ -42,6 +42,7 @@ function makeFakeRpc(overrides: { balance?: bigint; fee?: bigint | null; rentExe
 
 function makeConfigService(): ConfigService {
   process.env.DATABASE_URL = "postgresql://unused/for-tests";
+  process.env.REDIS_URL = "redis://unused/for-tests";
   process.env.JWT_SECRET = "test-secret-does-not-leave-this-process";
   process.env.TIP_REGISTRY_PROGRAM_ID = PROGRAM_ID;
   return new ConfigService();

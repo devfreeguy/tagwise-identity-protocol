@@ -17,6 +17,7 @@ const { fakeDb } = vi.hoisted(() => ({
   fakeDb: {
     $connect: async () => undefined,
     $disconnect: async () => undefined,
+    $queryRaw: async () => [{ "?column?": 1 }],
     identity: {
       findUnique: vi.fn(),
       findMany: vi.fn(),
@@ -30,6 +31,16 @@ vi.mock("@tip/db", async (importOriginal) => {
   return { ...actual, createDbClient: () => fakeDb };
 });
 
+// Redis is swapped for ioredis-mock everywhere the app constructs a real
+// `new Redis(url)` (RedisModule), so RedisNonceStore, RedisThrottlerStorage,
+// and the health check all exercise their real code paths (GETDEL,
+// defineCommand + Lua, PING) against an in-process fake instead of a real
+// server, keeping this suite network-free.
+vi.mock("ioredis", async () => {
+  const { default: RedisMock } = await import("ioredis-mock");
+  return { Redis: RedisMock, default: RedisMock };
+});
+
 const PROGRAM_ID = "4vcgrBuzoWw3kBanVTtx7Pi1v9WyTJBJQsFAQMqjJZjx";
 const JWT_SECRET = "test-secret-does-not-leave-this-process";
 
@@ -38,6 +49,7 @@ function setTestEnv(): void {
   process.env.JWT_SECRET = JWT_SECRET;
   process.env.TIP_REGISTRY_PROGRAM_ID = PROGRAM_ID;
   process.env.PAYMENT_LINK_BASE_URL = "https://tagwise.me";
+  process.env.REDIS_URL = "redis://unused/for-tests";
 }
 
 function signToken(pubkey: string): Promise<string> {
@@ -192,5 +204,12 @@ describe("PATCH /v1/identity/:tag (HTTP integration)", () => {
       where: { tag: "daniel" },
       data: { bio: null },
     });
+  });
+
+  it("GET /health reports both db and redis reachability", async () => {
+    const response = await app.getHttpAdapter().getInstance().inject({ method: "GET", url: "/health" });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({ status: "ok", db: "reachable", redis: "reachable" });
   });
 });

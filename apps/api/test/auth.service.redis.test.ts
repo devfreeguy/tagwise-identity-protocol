@@ -1,16 +1,22 @@
 import { BadRequestException, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
+import RedisMock from "ioredis-mock";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { AuthService } from "../src/auth/auth.service.js";
 import { buildSignInMessage, parseSignInMessage } from "../src/auth/message.js";
-import { InMemoryNonceStore } from "../src/auth/nonce-store.js";
+import { RedisNonceStore } from "../src/auth/redis-nonce-store.js";
 import { ConfigService } from "../src/config/config.service.js";
 import { generateTestKeypair, signMessage, type TestKeypair } from "./helpers/keypair.js";
 
+/**
+ * Same scenarios as auth.service.test.ts, run against RedisNonceStore
+ * (backed by ioredis-mock) instead of InMemoryNonceStore, proving the
+ * storage swap is behavior-preserving: every assertion here matches the
+ * in-memory suite one-for-one.
+ */
 function makeConfigService(): ConfigService {
   process.env.DATABASE_URL = "postgresql://unused/for-tests";
-  process.env.REDIS_URL = "redis://unused/for-tests";
   process.env.JWT_SECRET = "test-secret-does-not-leave-this-process";
   process.env.AUTH_DOMAIN = "tagwise.test";
   process.env.AUTH_TOKEN_TTL = "1h";
@@ -18,20 +24,21 @@ function makeConfigService(): ConfigService {
   process.env.THROTTLE_TTL = "60";
   process.env.THROTTLE_LIMIT = "5";
   process.env.TIP_REGISTRY_PROGRAM_ID = "4vcgrBuzoWw3kBanVTtx7Pi1v9WyTJBJQsFAQMqjJZjx";
+  process.env.REDIS_URL = "redis://unused/for-tests";
   return new ConfigService();
 }
 
-describe("AuthService", () => {
+describe("AuthService (Redis-backed NonceStore)", () => {
   let authService: AuthService;
-  let nonceStore: InMemoryNonceStore;
+  let nonceStore: RedisNonceStore;
   let jwt: JwtService;
   let config: ConfigService;
   let keypair: TestKeypair;
 
   beforeEach(() => {
-    nonceStore = new InMemoryNonceStore();
-    jwt = new JwtService({});
     config = makeConfigService();
+    nonceStore = new RedisNonceStore(new RedisMock() as never, config);
+    jwt = new JwtService({});
     authService = new AuthService(nonceStore, jwt, config);
     keypair = generateTestKeypair();
   });
@@ -137,6 +144,17 @@ describe("AuthService", () => {
       await expect(
         authService.verify(pubkeyB.pubkeyBase58, messageForA, signature),
       ).rejects.toBeInstanceOf(UnauthorizedException);
+    });
+
+    it("two challenges for the same pubkey are both independently redeemable", async () => {
+      const messageA = await authService.challenge(keypair.pubkeyBase58);
+      const messageB = await authService.challenge(keypair.pubkeyBase58);
+
+      const tokenA = await authService.verify(keypair.pubkeyBase58, messageA, signMessage(messageA, keypair.secretKey));
+      const tokenB = await authService.verify(keypair.pubkeyBase58, messageB, signMessage(messageB, keypair.secretKey));
+
+      expect(typeof tokenA).toBe("string");
+      expect(typeof tokenB).toBe("string");
     });
   });
 });

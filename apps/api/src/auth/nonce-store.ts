@@ -11,12 +11,12 @@ export type NonceRecord = Readonly<{
  * already consumed. That consume-on-read behavior is what prevents replay:
  * once a nonce is taken, it can never be taken again.
  *
- * InMemoryNonceStore is the only implementation this stage. A Redis-backed
- * NonceStore lands in stage 2 and is REQUIRED before running more than one
- * instance or before production: in-memory nonces do not survive a restart
+ * RedisNonceStore (redis-nonce-store.ts) is the only production
+ * implementation from stage 2a on: in-memory nonces do not survive a restart
  * and are not shared across instances, so a caller whose challenge landed on
- * one instance could never verify against another. This stage is
- * single-instance dev only.
+ * one instance could never verify against another, and a restart silently
+ * drops every outstanding challenge. That is a deploy blocker, not a
+ * tradeoff, which is why AuthModule wires RedisNonceStore unconditionally.
  */
 export interface NonceStore {
   put(pubkey: string, nonce: string, ttlSeconds: number): Promise<void>;
@@ -29,14 +29,16 @@ function keyOf(pubkey: string, nonce: string): string {
   return `${pubkey}:${nonce}`;
 }
 
+/**
+ * TEST-ONLY. Not exported from anywhere production code imports, and never
+ * registered as the NONCE_STORE provider: AuthModule always wires
+ * RedisNonceStore. This exists purely so AuthService's unit tests can run
+ * against a trivial in-process NonceStore without pulling in Redis, and has
+ * no TTL reaper of its own; expiry is checked on read, exactly like Redis
+ * expiry is authoritative for RedisNonceStore.
+ */
 export class InMemoryNonceStore implements NonceStore {
   private readonly entries = new Map<string, NonceRecord>();
-  private readonly cleanupTimer: ReturnType<typeof setInterval>;
-
-  constructor(cleanupIntervalMs = 60_000) {
-    this.cleanupTimer = setInterval(() => this.cleanup(), cleanupIntervalMs);
-    this.cleanupTimer.unref?.();
-  }
 
   async put(pubkey: string, nonce: string, ttlSeconds: number): Promise<void> {
     const key = keyOf(pubkey, nonce);
@@ -58,20 +60,5 @@ export class InMemoryNonceStore implements NonceStore {
       return null;
     }
     return record;
-  }
-
-  /** Proactively drops expired entries so abandoned nonces do not accumulate. */
-  cleanup(): void {
-    const now = Date.now();
-    for (const [key, record] of this.entries) {
-      if (record.expiresAt < now) {
-        this.entries.delete(key);
-      }
-    }
-  }
-
-  /** Stops the periodic cleanup timer; used on application shutdown. */
-  destroy(): void {
-    clearInterval(this.cleanupTimer);
   }
 }

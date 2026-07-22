@@ -16,6 +16,8 @@ export type AppConfig = Readonly<{
   registerThrottleLimit: number;
   identityUpdateThrottleTtlSeconds: number;
   identityUpdateThrottleLimit: number;
+  redisUrl: string;
+  redisKeyPrefix: string;
 }>;
 
 function requireEnv(name: string): string {
@@ -55,6 +57,12 @@ export class ConfigService {
       registerThrottleLimit: Number(process.env.REGISTER_THROTTLE_LIMIT ?? "3"),
       identityUpdateThrottleTtlSeconds: Number(process.env.IDENTITY_UPDATE_THROTTLE_TTL ?? "60"),
       identityUpdateThrottleLimit: Number(process.env.IDENTITY_UPDATE_THROTTLE_LIMIT ?? "10"),
+      // No default: nonces and rate limits MUST be Redis-backed from this
+      // stage on. Defaulting to some in-memory fallback here would silently
+      // reintroduce the multi-instance replay hole this stage exists to
+      // close, so a missing REDIS_URL fails fast at startup instead.
+      redisUrl: requireEnv("REDIS_URL"),
+      redisKeyPrefix: process.env.REDIS_KEY_PREFIX ?? "tip:",
     };
   }
 }
