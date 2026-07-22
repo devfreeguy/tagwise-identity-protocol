@@ -14,6 +14,8 @@ export type AppConfig = Readonly<{
   rpcHttpUrl: string;
   registerThrottleTtlSeconds: number;
   registerThrottleLimit: number;
+  identityUpdateThrottleTtlSeconds: number;
+  identityUpdateThrottleLimit: number;
 }>;
 
 function requireEnv(name: string): string {
@@ -51,6 +53,8 @@ export class ConfigService {
       rpcHttpUrl: process.env.RPC_HTTP_URL ?? "https://api.devnet.solana.com",
       registerThrottleTtlSeconds: Number(process.env.REGISTER_THROTTLE_TTL ?? "60"),
       registerThrottleLimit: Number(process.env.REGISTER_THROTTLE_LIMIT ?? "3"),
+      identityUpdateThrottleTtlSeconds: Number(process.env.IDENTITY_UPDATE_THROTTLE_TTL ?? "60"),
+      identityUpdateThrottleLimit: Number(process.env.IDENTITY_UPDATE_THROTTLE_LIMIT ?? "10"),
     };
   }
 }

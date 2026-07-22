@@ -14,7 +14,11 @@ async function bootstrap(): Promise<void> {
   const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter());
 
   app.useGlobalFilters(new GlobalExceptionFilter());
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }));
+  // transform: true is required for the @Transform() trim decorators on
+  // UpdateIdentityRequestDto to actually affect the value the controller
+  // receives; without it, Nest validates the transformed value but still
+  // hands the controller the original, untransformed body.
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
   app.enableShutdownHooks();
 
   const document = SwaggerModule.createDocument(
