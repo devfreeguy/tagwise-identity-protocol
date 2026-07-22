@@ -10,6 +10,9 @@
     "directory": "packages/sdk"
   },
   "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -24,17 +27,21 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsdown",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "format": "echo \"no formatter configured yet\""
+    "format": "echo \"no formatter configured yet\"",
+    "prepack": "npm pkg delete \"devDependencies.@tip/core\"",
+    "postpack": "npm pkg set \"devDependencies.@tip/core=workspace:*\""
   },
   "dependencies": {
-    "@solana/kit": "7.0.0",
-    "@tip/core": "workspace:*"
+    "@solana/addresses": "^7.0.0",
+    "@solana/kit": "^7.0.0"
   },
   "devDependencies": {
+    "@tip/core": "workspace:*",
     "@types/node": "24.13.3",
+    "tsdown": "0.22.13",
     "vitest": "4.1.10"
   }
 }
