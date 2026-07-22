@@ -38,6 +38,11 @@ export type AccountDecodeCase = {
   };
 };
 
+export type ReservedTagCase = {
+  tag: string;
+  reserved: boolean;
+};
+
 export type TagRulesVectors = {
   description: string;
   seedPrefix: string;
@@ -51,6 +56,7 @@ export type TagRulesVectors = {
     discriminatorHex: string;
     cases: AccountDecodeCase[];
   };
+  reservedTagCases: ReservedTagCase[];
 };
 
 export const vectors: TagRulesVectors = JSON.parse(

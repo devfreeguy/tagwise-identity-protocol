@@ -16,6 +16,7 @@ function makeConfigService(): ConfigService {
   process.env.AUTH_NONCE_TTL = "300";
   process.env.THROTTLE_TTL = "60";
   process.env.THROTTLE_LIMIT = "5";
+  process.env.TIP_REGISTRY_PROGRAM_ID = "4vcgrBuzoWw3kBanVTtx7Pi1v9WyTJBJQsFAQMqjJZjx";
   return new ConfigService();
 }
 

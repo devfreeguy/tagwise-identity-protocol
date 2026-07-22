@@ -41,6 +41,7 @@ function makeConfigService(): ConfigService {
   process.env.DATABASE_URL = "postgresql://unused/for-tests";
   process.env.PAYMENT_LINK_BASE_URL = "https://tagwise.me";
   process.env.JWT_SECRET = "test-secret-does-not-leave-this-process";
+  process.env.TIP_REGISTRY_PROGRAM_ID = "4vcgrBuzoWw3kBanVTtx7Pi1v9WyTJBJQsFAQMqjJZjx";
   return new ConfigService();
 }
 
@@ -172,26 +173,47 @@ describe("TagsService", () => {
   });
 
   describe("availability", () => {
-    it("reports available for an unknown canonical tag", async () => {
+    it("reports available for an unknown, clean, non-reserved canonical tag", async () => {
       (db.identity.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null);
 
-      const result = await service.availability("freshtag" as never);
+      const result = await service.availability("freshtag");
 
-      expect(result).toEqual({ tag: "@freshtag", available: true, reason: "canonical_and_unused" });
+      expect(result).toEqual({ tag: "@freshtag", available: true, reason: "available" });
     });
 
-    it("reports taken for an existing active tag", async () => {
+    it("reports invalid for non-canonical input, without a 400", async () => {
+      const result = await service.availability("ab");
+
+      expect(result).toEqual({ tag: "@ab", available: false, reason: "invalid" });
+      expect(db.identity.findUnique).not.toHaveBeenCalled();
+    });
+
+    it("reports reserved for a reserved tag", async () => {
+      const result = await service.availability("admin");
+
+      expect(result).toEqual({ tag: "@admin", available: false, reason: "reserved" });
+      expect(db.identity.findUnique).not.toHaveBeenCalled();
+    });
+
+    it("reports inappropriate for a profane tag", async () => {
+      const result = await service.availability("fuck");
+
+      expect(result).toEqual({ tag: "@fuck", available: false, reason: "inappropriate" });
+      expect(db.identity.findUnique).not.toHaveBeenCalled();
+    });
+
+    it("reports already_registered for an existing active tag", async () => {
       (db.identity.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({ status: "active" });
 
-      const result = await service.availability("daniel" as never);
+      const result = await service.availability("daniel");
 
       expect(result).toEqual({ tag: "@daniel", available: false, reason: "already_registered" });
     });
 
-    it("reports taken for a blocked tag", async () => {
+    it("reports already_registered for a blocked tag", async () => {
       (db.identity.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({ status: "blocked" });
 
-      const result = await service.availability("daniel" as never);
+      const result = await service.availability("daniel");
 
       expect(result).toEqual({ tag: "@daniel", available: false, reason: "already_registered" });
     });

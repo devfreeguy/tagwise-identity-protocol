@@ -10,6 +10,10 @@ export type AppConfig = Readonly<{
   authNonceTtlSeconds: number;
   throttleTtlSeconds: number;
   throttleLimit: number;
+  tipRegistryProgramId: string;
+  rpcHttpUrl: string;
+  registerThrottleTtlSeconds: number;
+  registerThrottleLimit: number;
 }>;
 
 function requireEnv(name: string): string {
@@ -43,6 +47,10 @@ export class ConfigService {
       authNonceTtlSeconds: Number(process.env.AUTH_NONCE_TTL ?? "300"),
       throttleTtlSeconds: Number(process.env.THROTTLE_TTL ?? "60"),
       throttleLimit: Number(process.env.THROTTLE_LIMIT ?? "5"),
+      tipRegistryProgramId: requireEnv("TIP_REGISTRY_PROGRAM_ID"),
+      rpcHttpUrl: process.env.RPC_HTTP_URL ?? "https://api.devnet.solana.com",
+      registerThrottleTtlSeconds: Number(process.env.REGISTER_THROTTLE_TTL ?? "60"),
+      registerThrottleLimit: Number(process.env.REGISTER_THROTTLE_LIMIT ?? "3"),
     };
   }
 }

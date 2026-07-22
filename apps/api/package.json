@@ -12,6 +12,7 @@
     "format": "echo \"no formatter configured yet\""
   },
   "dependencies": {
+    "@2toad/profanity": "3.3.0",
     "@fastify/static": "9.3.0",
     "@nestjs/common": "11.1.28",
     "@nestjs/core": "11.1.28",

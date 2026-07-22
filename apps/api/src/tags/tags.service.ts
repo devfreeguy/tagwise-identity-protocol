@@ -1,5 +1,5 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
-import type { NormalizedTag } from "@tip/core";
+import { normalizeTag, type NormalizedTag } from "@tip/core";
 import type { Identity, PrismaClient } from "@tip/db";
 
 import { ConfigService } from "../config/config.service.js";
@@ -13,6 +13,7 @@ import type { QrResponseDto } from "./dto/qr-response.dto.js";
 import type { ResolveResponseDto } from "./dto/resolve-response.dto.js";
 import type { SearchResultItemDto } from "./dto/search-result.dto.js";
 import { buildPaymentLink, buildProfileLink, buildQrLink } from "./links.js";
+import { checkNamingGate } from "./naming-gate.js";
 import { presentTag } from "./tag-param.js";
 
 const SEARCH_RESULT_LIMIT = 10;
@@ -122,20 +123,20 @@ export class TagsService {
   }
 
   /**
-   * Available means canonical form (already guaranteed by the caller having
-   * normalized the param) and not present as an active row in the mirror.
-   * A blocked row still counts as taken. The reserved-list and profanity
-   * checks that also make a name unavailable are added in stage 3 with
-   * registration; they are not implemented here.
+   * Runs the full naming gate: canonical form, then reserved, then
+   * profanity, then the mirror check. Unlike the other tag endpoints, a
+   * non-canonical tag here is not a 400: availability exists specifically
+   * to answer "can I have this name", and "no, it is not even valid" is a
+   * normal answer to that question, not an exceptional one.
    */
-  async availability(tag: NormalizedTag): Promise<AvailabilityResponseDto> {
-    const row = await this.db.identity.findUnique({ where: { tag }, select: { status: true } });
-    const taken = row !== null;
-    return {
-      tag: presentTag(tag),
-      available: !taken,
-      reason: taken ? "already_registered" : "canonical_and_unused",
-    };
+  async availability(rawTag: string): Promise<AvailabilityResponseDto> {
+    const normalized = normalizeTag(rawTag);
+    if (!normalized.ok) {
+      return { tag: presentTag(rawTag), available: false, reason: "invalid" };
+    }
+
+    const gateResult = await checkNamingGate(this.db, normalized.tag);
+    return { tag: presentTag(normalized.tag), available: gateResult.available, reason: gateResult.reason };
   }
 
   /**

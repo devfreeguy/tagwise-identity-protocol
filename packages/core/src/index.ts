@@ -28,3 +28,5 @@ export {
   type TagAccount,
   type TagAccountDecodeErrorReason,
 } from "./account.js";
+
+export { isReservedTag, RESERVED_TAGS } from "./reserved.js";

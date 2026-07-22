@@ -35,8 +35,11 @@ export class TagsController {
   @ApiOperation({ summary: "Check whether a tag is available to register" })
   @ApiOkResponse({ type: AvailabilityResponseDto })
   availability(@Param("tag") rawTag: string): Promise<AvailabilityResponseDto> {
-    const tag = normalizeTagParamOrThrow(rawTag);
-    return this.tagsService.availability(tag);
+    // Unlike the other endpoints, availability does not 400 on non-canonical
+    // input; it runs the full naming gate itself and reports reason:
+    // "invalid" as a normal answer, since the whole point of this endpoint
+    // is to report on validity, not to assume it.
+    return this.tagsService.availability(rawTag);
   }
 
   @Get("search")

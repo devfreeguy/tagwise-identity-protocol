@@ -188,5 +188,13 @@
         }
       }
     ]
-  }
+  },
+  "reservedTagCases": [
+    { "tag": "admin", "reserved": true },
+    { "tag": "support", "reserved": true },
+    { "tag": "tagwise", "reserved": true },
+    { "tag": "tagwise_official", "reserved": true },
+    { "tag": "daniel", "reserved": false },
+    { "tag": "abc", "reserved": false }
+  ]
 }

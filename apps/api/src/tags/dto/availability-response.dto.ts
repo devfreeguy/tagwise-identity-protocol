@@ -8,9 +8,8 @@ export class AvailabilityResponseDto {
   available!: boolean;
 
   @ApiProperty({
-    description:
-      "Short machine-readable reason. Only canonical-form and mirror-presence are checked in this stage; reserved-list and profanity checks land in stage 3 with registration.",
-    example: "canonical_and_unused",
+    description: "One of: available, invalid, reserved, inappropriate, already_registered.",
+    example: "available",
   })
   reason!: string;
 }

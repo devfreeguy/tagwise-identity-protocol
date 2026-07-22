@@ -31,6 +31,9 @@ import { InMemoryNonceStore, NONCE_STORE } from "./nonce-store.js";
     // production; see nonce-store.ts for why.
     { provide: NONCE_STORE, useClass: InMemoryNonceStore },
   ],
-  exports: [JwtAuthGuard, TagOwnershipGuard],
+  // JwtModule is re-exported (not just imported) because JwtAuthGuard
+  // depends on JwtService: any module that imports AuthModule for the guard
+  // needs JwtService resolvable too, or Nest can't construct the guard.
+  exports: [JwtModule, JwtAuthGuard, TagOwnershipGuard],
 })
 export class AuthModule {}
