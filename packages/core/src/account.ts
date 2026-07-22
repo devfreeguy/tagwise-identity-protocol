@@ -1,5 +1,3 @@
-import { createHash } from "node:crypto";
-
 import { getAddressDecoder, type Address } from "@solana/addresses";
 
 import { MAX_TAG_LENGTH } from "./constants.js";
@@ -21,18 +19,20 @@ const BUMP_OFFSET = TAG_LEN_OFFSET + 1;
  */
 export const TAG_ACCOUNT_SIZE = BUMP_OFFSET + 1;
 
-function computeAnchorAccountDiscriminator(accountName: string): Uint8Array {
-  const hash = createHash("sha256").update(`account:${accountName}`).digest();
-  return new Uint8Array(hash.subarray(0, DISCRIMINATOR_LENGTH));
-}
-
 /**
- * The 8-byte Anchor account discriminator for tip_registry's TagAccount,
- * computed the way Anchor does it: the first 8 bytes of
- * sha256("account:TagAccount"). Computed rather than hardcoded so it stays
- * correct if the on-chain struct is ever renamed.
+ * The 8-byte Anchor account discriminator for tip_registry's TagAccount:
+ * the first 8 bytes of sha256("account:TagAccount"), the way Anchor derives
+ * it. This is a deterministic constant, not a runtime computation: it is a
+ * literal here (not computed via node:crypto) so this package has no Node
+ * builtin dependency and stays safe to bundle into a browser app. The
+ * literal can never silently drift from the program because
+ * test/account.test.ts independently recomputes sha256("account:TagAccount")
+ * with node:crypto (test-only, never shipped) and asserts it matches this
+ * exact byte sequence.
  */
-export const TAG_ACCOUNT_DISCRIMINATOR: Uint8Array = computeAnchorAccountDiscriminator("TagAccount");
+export const TAG_ACCOUNT_DISCRIMINATOR: Uint8Array = Uint8Array.from([
+  206, 141, 84, 39, 161, 42, 185, 170,
+]);
 
 /**
  * A decoded tip_registry tag account. tag is always canonical, never the

@@ -1,0 +1,40 @@
+{
+  "name": "@tagwise/tip-sdk",
+  "version": "0.1.0",
+  "description": "Client SDK for the TIP (tagwise identity protocol) API and Solana program",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/devfreeguy/tagwise-identity-protocol.git",
+    "directory": "packages/sdk"
+  },
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "format": "echo \"no formatter configured yet\""
+  },
+  "dependencies": {
+    "@solana/kit": "7.0.0",
+    "@tip/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.3",
+    "vitest": "4.1.10"
+  }
+}

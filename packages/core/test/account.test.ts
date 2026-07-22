@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -20,6 +22,20 @@ const { cases, discriminatorHex } = vectors.accountDecodeCases;
 describe("decodeTagAccount", () => {
   it("computes the discriminator matching the shared vector", () => {
     expect(Buffer.from(TAG_ACCOUNT_DISCRIMINATOR).toString("hex")).toBe(discriminatorHex);
+  });
+
+  it("the literal TAG_ACCOUNT_DISCRIMINATOR matches a fresh sha256(\"account:TagAccount\") derivation", () => {
+    // TAG_ACCOUNT_DISCRIMINATOR in src/account.ts is a hardcoded literal, not
+    // a runtime sha256 computation, so packages/core has no node:crypto
+    // dependency in its shipped path (it must stay safe to bundle into a
+    // browser app, see packages/sdk). This test is the guard against that
+    // literal ever silently drifting from what Anchor would actually derive:
+    // it independently recomputes the hash here, in a test file, where a
+    // node:crypto import is acceptable.
+    const hash = createHash("sha256").update("account:TagAccount").digest();
+    const expectedDiscriminator = new Uint8Array(hash.subarray(0, 8));
+
+    expect(Array.from(TAG_ACCOUNT_DISCRIMINATOR)).toEqual(Array.from(expectedDiscriminator));
   });
 
   for (const testCase of cases) {

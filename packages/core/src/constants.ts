@@ -20,9 +20,9 @@ export const MAX_TAG_LENGTH = 20;
 export const ALLOWED_TAG_CHARACTERS_PATTERN = /^[a-z0-9_]+$/;
 
 /**
- * The deployed tip-registry program id. This is intentionally left unset.
- * Fill it in once the program has been deployed and the real address is
- * known. Do not replace this with a fabricated or placeholder-looking
- * address.
+ * The deployed tip-registry program id. This is the real devnet deployment,
+ * using the program keypair that is also intended for the eventual mainnet
+ * deployment, so this same constant holds across clusters (devnet today,
+ * mainnet later), not just one of them.
  */
-export const TIP_REGISTRY_PROGRAM_ID: string | null = null;
+export const TIP_REGISTRY_PROGRAM_ID: string = "4vcgrBuzoWw3kBanVTtx7Pi1v9WyTJBJQsFAQMqjJZjx";
