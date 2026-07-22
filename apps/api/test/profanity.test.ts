@@ -12,6 +12,12 @@ describe("isBlockedName", () => {
     expect(isBlockedName("sh1t").blocked).toBe(true);
   });
 
+  it("blocks an ambiguous-digit evasion that only resolves on the l branch", () => {
+    // "1" must be tried as both "i" and "l": "s1ut" only becomes the
+    // blocked word "slut" on the "l" branch, never on "i" ("siut").
+    expect(isBlockedName("s1ut").blocked).toBe(true);
+  });
+
   it("blocks an underscore-separated evasion", () => {
     expect(isBlockedName("f_u_c_k").blocked).toBe(true);
   });

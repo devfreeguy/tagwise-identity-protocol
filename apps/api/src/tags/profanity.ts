@@ -1,6 +1,6 @@
 import { Profanity } from "@2toad/profanity";
 
-import { normalizeForProfanityCheck } from "./leetspeak.js";
+import { generateProfanityCheckVariants } from "./leetspeak.js";
 import { ALLOWLIST, EXTRA_BLOCKED_TERMS } from "./profanity-lists.js";
 
 export type BlockedNameResult = Readonly<{ blocked: false }> | Readonly<{ blocked: true; reason: "profanity" }>;
@@ -31,11 +31,13 @@ function containsBlockedContent(candidate: string): boolean {
  *    or "scunthorpe" would be wrongly blocked.
  * 2. The raw (already-canonical, lowercase) tag is checked against the
  *    @2toad/profanity engine and the extra author-curated blocked terms.
- * 3. A leetspeak/evasion-normalized form of the same tag (underscores
- *    stripped, common substitutions reversed, repeated characters
- *    collapsed, see leetspeak.ts) is re-checked against the same engine and
- *    terms, to catch evasions like "f_u_c_k" or "fvck" that the raw form
- *    would not match.
+ * 3. Every leetspeak/evasion variant of the same tag (underscores stripped,
+ *    ambiguous digits expanded to all the letters they could plausibly
+ *    represent, repeated characters collapsed, see leetspeak.ts) is
+ *    re-checked against the same engine and terms. A tag is blocked if any
+ *    single variant matches, to catch evasions like "f_u_c_k", "fvck", or
+ *    "s1ut" (where "1" must be tried as both "i" and "l") that the raw form
+ *    alone would not match.
  */
 export function isBlockedName(tag: string): BlockedNameResult {
   const lower = tag.toLowerCase();
@@ -48,9 +50,10 @@ export function isBlockedName(tag: string): BlockedNameResult {
     return { blocked: true, reason: "profanity" };
   }
 
-  const normalized = normalizeForProfanityCheck(lower);
-  if (containsBlockedContent(normalized)) {
-    return { blocked: true, reason: "profanity" };
+  for (const variant of generateProfanityCheckVariants(lower)) {
+    if (containsBlockedContent(variant)) {
+      return { blocked: true, reason: "profanity" };
+    }
   }
 
   return { blocked: false };
