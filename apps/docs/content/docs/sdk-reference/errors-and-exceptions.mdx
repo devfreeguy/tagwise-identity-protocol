@@ -1,0 +1,91 @@
+---
+title: Errors & Exceptions
+description: Exception hierarchy, error codes, and handling patterns in @tagwise/tip-sdk.
+---
+
+`@tagwise/tip-sdk` exports a clear class hierarchy for error handling. All SDK exceptions inherit from the base `TipError` class.
+
+```typescript
+import {
+  TipError,
+  TipApiError,
+  TagNotFoundError,
+  TagInvalidError,
+  UnauthorizedError,
+  ForbiddenError,
+  RateLimitedError,
+  NoSessionError,
+  InsufficientBalanceError,
+  ValidationError,
+  UnexpectedApiError,
+} from "@tagwise/tip-sdk";
+```
+
+---
+
+## Error Class Hierarchy
+
+```
+TipError (Base Class)
+├── NoSessionError (Client state: write attempted without connect())
+└── TipApiError (Base class for HTTP API status errors)
+    ├── TagNotFoundError (HTTP 404)
+    ├── TagInvalidError (HTTP 400 - tag format or blocked)
+    ├── UnauthorizedError (HTTP 401 - missing/invalid JWT session)
+    ├── ForbiddenError (HTTP 403 - caller is not tag owner)
+    ├── RateLimitedError (HTTP 429 - throttled request limit)
+    ├── InsufficientBalanceError (HTTP 402 - insufficient SOL for rent)
+    ├── ValidationError (HTTP 400 - DTO request body validation failure)
+    └── UnexpectedApiError (HTTP 500 - unexpected server failure)
+```
+
+---
+
+## Error Properties
+
+All `TipApiError` instances expose HTTP metadata fields:
+
+```typescript
+class TipApiError extends TipError {
+  readonly status: number; // HTTP status code (e.g. 404, 403, 429)
+  readonly path: string;   // Request path (e.g. "/v1/resolve/alice")
+}
+```
+
+---
+
+## Defensive Error Handling Example
+
+```typescript
+import {
+  TipClient,
+  TagNotFoundError,
+  TagInvalidError,
+  ForbiddenError,
+  RateLimitedError,
+  NoSessionError,
+} from "@tagwise/tip-sdk";
+
+const client = new TipClient();
+
+async function handleUserRegistration(tag: string) {
+  try {
+    const res = await client.register({ tag });
+    console.log("Unsigned Tx:", res.transaction);
+  } catch (error) {
+    if (error instanceof NoSessionError) {
+      console.error("Please connect your wallet first.");
+    } else if (error instanceof TagInvalidError) {
+      console.error("Tag is malformed, profanity-blocked, or already registered.");
+    } else if (error instanceof ForbiddenError) {
+      console.error("You do not have permission to modify this tag.");
+    } else if (error instanceof RateLimitedError) {
+      console.error("Too many requests. Please slow down and try again.");
+    } else if (error instanceof TagNotFoundError) {
+      console.error("Requested tag was not found.");
+    } else {
+      console.error("An unexpected error occurred:", error);
+    }
+  }
+}
+```

@@ -1,0 +1,54 @@
+---
+title: SDK Reference
+description: Complete API reference documentation for the @tagwise/tip-sdk TypeScript client.
+---
+
+Welcome to the **`@tagwise/tip-sdk`** reference documentation. 
+
+This SDK provides a fully typed TypeScript client for interacting with the Tagwise Identity Protocol, resolving handles, managing profiles, executing non-custodial SIWS authentication, and performing direct on-chain PDA reads over RPC.
+
+---
+
+## Reference Sections
+
+<Cards>
+  <Card title="TipClient Class" href="/docs/sdk-reference/tip-client">
+    Exhaustive reference for the `TipClient` class constructor, read methods, write methods, and auth flow.
+  </Card>
+  <Card title="On-Chain Resolution" href="/docs/sdk-reference/on-chain-resolution">
+    Direct RPC resolution methods (`resolveOnChain`) and PDA seed derivation utilities (`deriveTagPda`).
+  </Card>
+  <Card title="Tag Utilities & Constants" href="/docs/sdk-reference/tag-utilities">
+    Local tag validation (`normalizeTag`, `isValidTag`, `isReservedTag`) and exported constants.
+  </Card>
+  <Card title="Types & Models" href="/docs/sdk-reference/types-and-models">
+    Complete list of TypeScript interfaces, parameters, and response structures.
+  </Card>
+  <Card title="Errors & Exceptions" href="/docs/sdk-reference/errors-and-exceptions">
+    SDK exception class hierarchy (`TipError`, `TagNotFoundError`, `NoSessionError`, etc.) and handling patterns.
+  </Card>
+</Cards>
+
+---
+
+## Installation
+
+```bash
+pnpm add @tagwise/tip-sdk
+```
+
+## Package Entrypoint Exports
+
+```typescript
+import {
+  TipClient,
+  DEFAULT_BASE_URL,
+  normalizeTag,
+  isValidTag,
+  isReservedTag,
+  deriveTagPda,
+  TipError,
+  TagNotFoundError,
+  // ... types
+} from "@tagwise/tip-sdk";
+```

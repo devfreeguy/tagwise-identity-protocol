@@ -1,0 +1,70 @@
+---
+title: Payment Links & QR Codes
+description: Generate Solana Pay payment URLs and QR code payloads for web & mobile checkouts.
+---
+
+TIP provides built-in endpoints and SDK methods to create universal payment URLs and QR code payloads for any registered handle.
+
+---
+
+## 1. Web Payment Links
+
+Call `client.paymentLink(tag)` to get the universal checkout URL for a handle:
+
+```typescript
+import { TipClient } from "@tagwise/tip-sdk";
+
+const client = new TipClient();
+
+const res = await client.paymentLink("alice");
+
+console.log("Payment Link:", res.url); 
+// "https://tagwise.me/pay/@alice"
+```
+
+Redirecting users to `res.url` presents a hosted checkout interface where users can select their preferred payment token (SOL, USDC, etc.) and complete the transaction.
+
+---
+
+## 2. Generating QR Code Payloads
+
+For point-of-sale systems, mobile checkouts, or embedded dApp modals, call `client.qr(tag)` to generate QR code payloads:
+
+```typescript
+const qrRes = await client.qr("alice");
+
+console.log("Tag:", qrRes.tag);                         // "@alice"
+console.log("Solana Pay Payload:", qrRes.solanaPayUrl); // "solana:4vcgrBuzoWw3kBanVTtx7Pi1v9WyTJBJQsFAQMqjJZjx"
+console.log("Web Checkout URL:", qrRes.paymentLink);   // "https://tagwise.me/pay/@alice"
+```
+
+---
+
+## 3. Rendering QR Codes in React / Web Apps
+
+Pass `qrRes.solanaPayUrl` to any standard QR code renderer (like `qrcode.react`):
+
+```tsx
+import { useEffect, useState } from "react";
+import QRCode from "qrcode.react";
+import { TipClient } from "@tagwise/tip-sdk";
+
+export function TagPaymentModal({ tag }: { tag: string }) {
+  const [solanaPayUrl, setSolanaPayUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const client = new TipClient();
+    client.qr(tag).then((res) => setSolanaPayUrl(res.solanaPayUrl));
+  }, [tag]);
+
+  if (!solanaPayUrl) return <p>Generating QR Code...</p>;
+
+  return (
+    <div style={{ textAlign: "center", padding: "1rem" }}>
+      <h3>Pay @{tag}</h3>
+      <QRCode value={solanaPayUrl} size={256} includeMargin />
+      <p>Scan with any Solana Wallet (Phantom, Solflare, Backpack)</p>
+    </div>
+  );
+}
+```

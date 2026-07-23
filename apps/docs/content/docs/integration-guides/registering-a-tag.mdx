@@ -1,0 +1,80 @@
+---
+title: Registering a Tag
+description: Build a complete non-custodial tag registration flow in your application.
+---
+
+Registering a tag on TIP creates a permanent Program Derived Address (PDA) on the Solana blockchain. Because TIP is non-custodial, the API constructs an unsigned transaction which the connected wallet signs and broadcasts.
+
+---
+
+## Registration Workflow
+
+```
+1. Authenticate (SIWS) ──> 2. Call register({ tag }) ──> 3. Wallet Signs & Broadcasts
+```
+
+### Complete Code Example
+
+```typescript
+import { TipClient } from "@tagwise/tip-sdk";
+
+async function registerUserTag(client: TipClient, walletAdapter: any, desiredTag: string) {
+  // Step 1: Ensure client is authenticated via SIWS
+  if (!client.token) {
+    await client.connect({
+      publicKey: walletAdapter.publicKey.toBase58(),
+      signMessage: async (bytes) => walletAdapter.signMessage(bytes),
+    });
+  }
+
+  // Step 2: Request unsigned register_tag transaction
+  const unsignedRes = await client.register({
+    tag: desiredTag,
+    wallet: walletAdapter.publicKey.toBase58(), // Optional: defaults to owner pubkey
+  });
+
+  console.log("Unsigned Base64 Transaction:", unsignedRes.transaction);
+  console.log("Derived Tag PDA:", unsignedRes.pda);
+
+  // Step 3: Sign & Submit via SDK or Wallet Adapter
+  // Option A: Use SDK convenience method (requires rpcUrl in TipClient)
+  const txSignature = await client.signAndSendTransaction(
+    unsignedRes.transaction,
+    walletAdapter
+  );
+
+  console.log("Tag registered! Transaction Signature:", txSignature);
+  return txSignature;
+}
+```
+
+---
+
+## Important Constraints & Errors
+
+> [!WARNING]
+> **Rent Exemption Fee**  
+> The wallet executing the transaction must hold a minimum SOL balance (approx **0.002 SOL**) to pay for transaction fees and the PDA account's rent-exempt deposit. If the wallet balance is insufficient, the transaction will fail.
+
+### Handling Specific Errors
+
+```typescript
+import {
+  TagInvalidError,
+  ForbiddenError,
+  RateLimitedError,
+  NoSessionError,
+} from "@tagwise/tip-sdk";
+
+try {
+  await client.register({ tag: "alice" });
+} catch (error) {
+  if (error instanceof TagInvalidError) {
+    console.error("Tag is malformed, profanity-blocked, or already taken.");
+  } else if (error instanceof NoSessionError) {
+    console.error("Must call client.connect() before registering.");
+  } else if (error instanceof RateLimitedError) {
+    console.error("Too many registration requests. Please wait.");
+  }
+}
+```

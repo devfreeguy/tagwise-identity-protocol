@@ -1,0 +1,11 @@
+{
+  "title": "Integration Guides",
+  "pages": [
+    "index",
+    "registering-a-tag",
+    "managing-profiles-and-wallets",
+    "wallet-authentication",
+    "direct-on-chain-resolution",
+    "payment-links-and-qr"
+  ]
+}

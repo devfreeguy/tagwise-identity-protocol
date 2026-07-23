@@ -1,26 +1,113 @@
 ---
 title: Quickstart
-description: Install the SDK and resolve your first tag.
+description: Install @tagwise/tip-sdk and resolve your first tag in under 5 minutes.
 ---
 
-Install the SDK:
+Get up and running with the **Tagwise Identity Protocol (TIP)** SDK in TypeScript/JavaScript.
 
-```package-install
-npm i @tagwise/tip-sdk
+---
+
+## 1. Installation
+
+Install `@tagwise/tip-sdk` using your preferred package manager:
+
+<Tabs items={['pnpm', 'npm', 'yarn']}>
+  <Tab value="pnpm">
+```bash
+pnpm add @tagwise/tip-sdk
 ```
+  </Tab>
+  <Tab value="npm">
+```bash
+npm install @tagwise/tip-sdk
+```
+  </Tab>
+  <Tab value="yarn">
+```bash
+yarn add @tagwise/tip-sdk
+```
+  </Tab>
+</Tabs>
 
-Create a client and resolve a tag. No configuration is required: the
-client defaults to the public TIP API.
+---
 
-```ts
+## 2. Initialize `TipClient`
+
+Create a client instance. No API keys or mandatory arguments are required for read operations:
+
+```typescript
 import { TipClient } from "@tagwise/tip-sdk";
 
+// Zero-config: defaults to public API (https://tip.tagwise.me)
 const client = new TipClient();
-const identity = await client.resolve("daniel");
-
-console.log(identity.wallet);
 ```
 
-`resolve()` returns the wallet address, display name, and payment link for
-`@daniel`. See [Concepts](/docs/concepts) for what is happening underneath,
-or [Guides](/docs/guides) for registering a tag and editing a profile.
+---
+
+## 3. Resolve a Tag to a Wallet
+
+Resolve a handle (e.g. `@alice`) to its active destination payment wallet address and off-chain profile:
+
+```typescript
+import { TipClient, TagNotFoundError } from "@tagwise/tip-sdk";
+
+const client = new TipClient();
+
+try {
+  const result = await client.resolve("alice");
+
+  console.log("Tag:", result.tag);                 // "@alice"
+  console.log("Payment Wallet:", result.wallet);  // "4vcgrBuzoWw3kBanVTtx7Pi1v9WyTJBJQsFAQMqjJZjx"
+  console.log("Display Name:", result.displayName); // "Alice Smith"
+  console.log("Payment Link:", result.paymentLink); // "https://tagwise.me/pay/@alice"
+} catch (error) {
+  if (error instanceof TagNotFoundError) {
+    console.log("Tag @alice has not been registered yet.");
+  } else {
+    console.error("Failed to resolve tag:", error);
+  }
+}
+```
+
+---
+
+## 4. Check Tag Availability
+
+Check if a handle is available for registration:
+
+```typescript
+const status = await client.availability("my_awesome_tag");
+
+if (status.available) {
+  console.log(`@${status.tag} is available to register!`);
+} else {
+  console.log(`Unavailable. Reason: ${status.reason}`); // "taken" | "invalid" | "reserved"
+}
+```
+
+---
+
+## 5. Direct On-Chain Fallback (No API Required)
+
+For maximum resilience, pass an `rpcUrl` to resolve tags straight from Solana RPC accounts without touching centralized API services:
+
+```typescript
+const client = new TipClient({
+  rpcUrl: "https://api.devnet.solana.com",
+});
+
+// Queries Solana account data directly
+const onChainData = await client.resolveOnChain("alice");
+
+if (onChainData) {
+  console.log("On-Chain Owner:", onChainData.owner);
+  console.log("On-Chain Payment Wallet:", onChainData.wallet);
+}
+```
+
+---
+
+## Next Steps
+
+- Explore [Integration Guides](/docs/integration-guides) for tag registration, profile management, and wallet authentication.
+- Browse the complete [SDK Reference](/docs/sdk-reference) for detailed API method signatures and types.

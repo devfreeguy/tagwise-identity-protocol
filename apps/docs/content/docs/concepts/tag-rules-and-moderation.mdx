@@ -1,0 +1,67 @@
+---
+title: Tag Rules & Moderation
+description: Validation criteria, canonical normalization, profanity filtering, and 3-tier moderation architecture.
+---
+
+TIP handles must be safe, collision-resistant, and free from homoglyph impersonation attacks. The protocol uses canonical normalization alongside a 3-tier moderation system.
+
+---
+
+## Canonical Tag Rules
+
+Raw user input is normalized into a **canonical tag format**. 
+
+| Rule | Requirement | Examples |
+| :--- | :--- | :--- |
+| **Leading Symbol** | Single leading `@` is stripped. | `@alice` → `alice` |
+| **Casing** | Lowercased (`a-z`). Uppercase is rejected or converted. | `Alice_99` → `alice_99` |
+| **Length** | Between **3** and **32** characters inclusive. | `dev` (OK), `hi` (Invalid - too short) |
+| **Character Set** | Lowercase ASCII letters (`a-z`), numbers (`0-9`), underscores (`_`), hyphens (`-`). | `sol-dev_1` (OK), `alice.sol` (Invalid character `.`) |
+
+```typescript
+import { normalizeTag } from "@tagwise/tip-sdk";
+
+const result = normalizeTag("@Alice_99");
+if (result.ok) {
+  console.log(result.tag); // "alice_99"
+} else {
+  console.error(result.reason); // "invalid_characters" | "too_short" | "too_long" | "reserved"
+}
+```
+
+---
+
+## Anti-Phishing: ASCII Homoglyph Prevention
+
+> [!WARNING]
+> **Why Unicode / Emoji Handles Are Rejected**  
+> Allowing Unicode characters opens the door to **homoglyph phishing attacks**. For example, the Cyrillic `а` (`U+0430`) and Latin `a` (`U+0061`) render identically in standard UI fonts. Phishers could register a visual duplicate of `@binance` to steal payments. TIP strictly enforces ASCII `[a-z0-9_-]` to eliminate homoglyph spoofing completely.
+
+---
+
+## 3-Tier Moderation Architecture
+
+To protect users and brand identity, TIP enforces a three-stage moderation gate:
+
+```
+[User Registration Request]
+          │
+          ▼
+┌───────────────────────────┐
+│ Tier 1: Client Validation │  <-- @tip/core (regex & reserved words)
+└─────────┬─────────────────┘
+          │ (Passed)
+          ▼
+┌───────────────────────────┐
+│ Tier 2: API Moderation    │  <-- @tip/moderation (profanity & leetspeak filter)
+└─────────┬─────────────────┘
+          │ (Passed)
+          ▼
+┌───────────────────────────┐
+│ Tier 3: Solana Program    │  <-- tip_registry (PDA uniqueness check)
+└───────────────────────────┘
+```
+
+1. **Tier 1: Client Validation (`@tip/core`)**: Fast local regex validation and reserved tag checks (`admin`, `official`, `solana`, `support`, `tip`).
+2. **Tier 2: Moderation Engine (`@tip/moderation`)**: Off-chain profanity inspection and leetspeak translation (e.g., detecting `4l1c3` or masked variations).
+3. **Tier 3: On-Chain Program Assertion (`tip_registry`)**: Final non-negotiable Solana bytecode verification ensuring strict format adherence and PDA seed uniqueness.

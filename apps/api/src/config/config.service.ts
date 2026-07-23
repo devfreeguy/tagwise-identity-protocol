@@ -20,6 +20,8 @@ export type AppConfig = Readonly<{
   redisKeyPrefix: string;
   resolveCacheTtlSeconds: number;
   resolveCacheNegativeTtlSeconds: number;
+  /** Comma-separated list of allowed CORS origins, or "*" to allow all. */
+  allowedOrigins: string[];
 }>;
 
 function requireEnv(name: string): string {
@@ -72,6 +74,10 @@ export class ConfigService {
       // were somehow missed.
       resolveCacheTtlSeconds: Number(process.env.RESOLVE_CACHE_TTL ?? "300"),
       resolveCacheNegativeTtlSeconds: Number(process.env.RESOLVE_CACHE_NEGATIVE_TTL ?? "30"),
+      // Comma-separated origins allowed to make cross-origin requests (e.g.
+      // the docs site). Defaults to "*" so nothing breaks without config, but
+      // lock this down in production via the ALLOWED_ORIGINS env var.
+      allowedOrigins: (process.env.ALLOWED_ORIGINS ?? "*").split(",").map((o) => o.trim()),
     };
   }
 }

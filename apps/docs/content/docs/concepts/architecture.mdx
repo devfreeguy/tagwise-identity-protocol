@@ -1,0 +1,58 @@
+---
+title: Protocol Architecture
+description: Comprehensive overview of TIP's multi-tier system design and data flow.
+---
+
+TIP is built as a **hybrid decentralized identity protocol**. It combines the censorship resistance and immutability of the Solana blockchain with the latency and rich search features of traditional cloud microservices.
+
+---
+
+## Component Breakdown
+
+TIP consists of five core components operating in unison:
+
+| Component | Repository Location | Technology Stack | Responsibility |
+| :--- | :--- | :--- | :--- |
+| **Solana Program** | `programs/tip-registry` | Rust, Anchor / Solana SDK | Authoritative state storage, PDA management, and on-chain tag registration enforcement. |
+| **Indexer Worker** | `apps/indexer` | Node.js, `@solana/kit`, Helius RPC | Real-time Solana account change subscriber. Mirrors on-chain events to Postgres and invalidates Redis cache. |
+| **HTTP REST API** | `apps/api` | NestJS, Fastify, Prisma | High-speed read endpoints, SIWS authentication, transaction compilation, and profile metadata storage. |
+| **TypeScript SDK** | `packages/sdk` | TypeScript, `@solana/kit` | Non-custodial client library for web, mobile, and backend integrations. Supports direct on-chain resolution fallback. |
+| **Database & Cache** | `packages/db` | PostgreSQL (Neon), Redis (Upstash) | Off-chain data mirror, search indices, rate limiting, and cache invalidation layer. |
+
+---
+
+## End-to-End Data Flow
+
+### 1. Tag Resolution Path (Read)
+
+```
+User App  ───>  TipClient.resolve("@alice")
+                     │
+            ┌────────┴────────┐
+            ▼                 ▼
+   Fast API Resolution    Direct On-Chain Fallback
+   (HTTP GET /v1/resolve) (RPC getAccountInfo)
+            │                 │
+     ┌──────┴──────┐          │
+     ▼             ▼          │
+ Redis Cache  Postgres Mirror │
+     │             │          │
+   (0.5ms)       (15ms)    (120ms)
+```
+
+1. **API Path (Default)**: `TipClient.resolve("@alice")` queries the TIP API. The API checks Redis cache (sub-millisecond). On cache miss, it queries PostgreSQL mirror and updates Redis.
+2. **On-Chain Fallback**: If the API is unreachable, `resolveOnChain("@alice")` derives the PDA address `["tag", "alice"]` and fetches account data directly from a Solana RPC node.
+
+---
+
+### 2. Tag Registration Path (Write)
+
+> [!IMPORTANT]
+> **Non-Custodial Security**  
+> Neither the API nor the SDK ever handles private keys. The API generates an unsigned base64 transaction, which the user's wallet signs and broadcasts directly to the Solana network.
+
+1. **Client Authenticates**: The client completes SIWS wallet challenge/verify flow and receives a JWT session token.
+2. **Build Transaction**: Client calls `TipClient.register({ tag: "alice" })`. The API validates tag format, checks off-chain moderation, and returns an unsigned `register_tag` transaction.
+3. **Wallet Sign & Submit**: Client passes transaction to user wallet adapter (e.g., Phantom, Solflare), which signs and broadcasts it to Solana RPC.
+4. **On-Chain Execution**: The `tip_registry` program verifies rent deposit, verifies PDA seed uniqueness, and creates the tag account on-chain.
+5. **Indexer Mirror Sync**: The `apps/indexer` background worker receives WebSocket account change notifications from Helius/Solana RPC, updates the PostgreSQL mirror, and deletes the Redis cache key for `@alice`.

@@ -1,0 +1,64 @@
+---
+title: Security & Authentication
+description: Non-custodial Sign-In With Solana (SIWS), JWT session tokens, and Owner vs Payment Wallet permissions.
+---
+
+TIP enforces a strict non-custodial security model across all client SDKs and backend APIs.
+
+---
+
+## Non-Custodial Security Mandate
+
+1. **Zero Secret Key Exposure**: Neither `@tagwise/tip-sdk` nor the TIP API ever asks for, stores, or transmits a private key or seed phrase.
+2. **Delegated Wallet Signing**: All authentication challenges and transaction signing operations are delegated to standard Solana wallet adapters (e.g., Phantom, Solflare, Backpack).
+
+---
+
+## Sign-In With Solana (SIWS) Authentication Flow
+
+To perform write actions (such as updating profile bios, changing payment wallets, or registering handles), clients authenticate using ed25519 signature challenges.
+
+```
+Client App                   TipClient SDK                  TIP API Service
+    │                              │                               │
+    │─── 1. connect(signer) ──────>│                               │
+    │                              │─── 2. POST /v1/auth/challenge ──>│
+    │                              │    { pubkey }                 │
+    │                              │<── 3. Return challenge string ───│
+    │                              │                               │
+    │<── 4. Prompt Wallet Sign ────│                               │
+    │    (ed25519 message bytes)   │                               │
+    │─── 5. Return Signature ─────>│                               │
+    │                              │─── 6. POST /v1/auth/verify ────>│
+    │                              │    { pubkey, message, sig }   │
+    │                              │<── 7. Return JWT Session Token ─│
+    │<── 8. Session Connected ─────│                               │
+```
+
+1. **Challenge Generation**: The API generates a cryptographically unique single-use challenge string containing a timestamp and nonce.
+2. **Wallet Signature**: The user signs the UTF-8 challenge message bytes with their ed25519 keypair.
+3. **Verification & JWT**: The API verifies the ed25519 signature against `pubkey`. Upon validation, it issues a signed JWT session token valid for 1 hour.
+
+---
+
+## Owner vs. Payment Wallet Separation
+
+Every tag account maintains two distinct public keys:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        TAG ACCOUNT                          │
+│                                                             │
+│   owner: 7xKX...  ──> Controls tag configuration & writes   │
+│  wallet: 9zQP...  ──> Destination for incoming payments     │
+└─────────────────────────────────────────────────────────────┘
+```
+
+| Field | Purpose | Can Modify Tag? | Typical Address |
+| :--- | :--- | :--- | :--- |
+| **`owner`** | Authoritative controller of the tag. | **YES** | Cold Wallet / Ledger / Primary Wallet |
+| **`wallet`** | Destination address for incoming funds. | **NO** | Merchant Wallet / Hot Wallet / Exchange |
+
+> [!TIP]
+> **Separation of Control & Funds**  
+> An organization can keep a tag's **Owner** key in a hardware wallet or multisig while setting the **Payment Wallet** to a hot trading account or payment processor. Changing the payment wallet requires a transaction signed by `owner`, but `wallet` itself gains zero administrative privileges.

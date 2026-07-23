@@ -1,4 +1,4 @@
 {
   "title": "Tagwise Identity Protocol (TIP)",
-  "pages": ["index", "quickstart", "concepts", "guides", "api-reference"]
+  "pages": ["index", "concepts", "quickstart", "integration-guides", "sdk-reference", "api-reference"]
 }

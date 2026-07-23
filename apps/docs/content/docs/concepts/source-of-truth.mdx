@@ -1,37 +1,67 @@
 ---
-title: Source of truth and the mirror
-description: What lives on-chain, what lives off-chain, and who can write each.
+title: Source of Truth vs. Off-Chain Mirror
+description: Understanding state authority, indexer synchronization, and cache invalidation guarantees in TIP.
 ---
 
-TIP's data is deliberately split across two places with two different
-authorities.
+A core design objective of TIP is eliminating centralized vendor lock-in while providing ultra-fast response times. To achieve this, TIP divides protocol state into two categories: **On-Chain Authority** and **Off-Chain Mirror**.
 
-## On-chain (the program)
+---
 
-The tag account stores exactly: `owner`, `wallet`, `tag`, `tag_len`, and
-`bump`. This is the source of truth. It only ever changes through a
-program instruction, signed by the owner: registering the tag, or
-updating the wallet. Nothing else can write it, not the API, not the
-indexer, not a database migration.
+## State Classification
 
-## Off-chain (the mirror)
+| Data Category | Stored On-Chain? | Stored Off-Chain? | Authority |
+| :--- | :--- | :--- | :--- |
+| **Tag Handle** (e.g., `alice`) | Yes (PDA Seed) | Yes (Database Mirror) | Solana Blockchain |
+| **Tag Owner** (Pubkey) | Yes (Account Field) | Yes (Database Mirror) | Solana Blockchain |
+| **Payment Wallet** (Pubkey) | Yes (Account Field) | Yes (Database Mirror) | Solana Blockchain |
+| **PDA Bump** (u8) | Yes (Account Field) | Yes (Database Mirror) | Solana Blockchain |
+| **Display Name** (Text) | No | Yes (Database Mirror) | TIP API / User |
+| **Avatar URL** (Image URL) | No | Yes (Database Mirror) | TIP API / User |
+| **Bio / Description** (Text) | No | Yes (Database Mirror) | TIP API / User |
+| **Preferred Token** (USDC/SOL) | No | Yes (Database Mirror) | TIP API / User |
+| **Moderation Status** (Flag) | No | Yes (Database Mirror) | Moderation System |
 
-Postgres stores everything the chain does not: `display name`, `avatar`,
-`bio`, `preferred token`, plus `verified` and `merchant` flags. These
-columns exist because they are either too expensive to put on-chain for
-data that changes often (a profile bio), or because they are
-protocol-external judgments (verification, merchant status) that the
-program has no opinion on. They are written through the API only
-(`PATCH /v1/identity/:tag` for the editable fields; `verified` and
-`merchant` are not writable by anyone through that endpoint at all, they
-are moderation-controlled).
+---
 
-## Why the split holds together
+## Synchronisation & Indexing Guarantees
 
-An indexer watches the program for account changes and applies them to
-the mirror, so the mirror's on-chain-shaped columns (`owner`, `wallet`,
-`tag`) always trace back to something the program actually emitted, never
-to a value the API invented. If the mirror or the API disappeared
-entirely, the on-chain fields would still be readable straight from the
-account; only the off-chain profile fields would be unavailable, since
-they were never stored anywhere but Postgres to begin with.
+The `apps/indexer` service monitors the Solana cluster via WebSocket logs and RPC polling. Whenever a `register_tag` or `update_wallet` transaction executes on-chain:
+
+1. **Transaction Confirmation**: The indexer observes the account update at `finalized` commitment.
+2. **PostgreSQL Mirror Update**: The indexer performs an idempotent write (`UPSERT`) into the PostgreSQL database mirror.
+3. **Redis Cache Invalidation**: The indexer constructs the exact Redis key for `@tag` (`tip:devnet:resolve:alice`) and issues a `DEL` command.
+
+> [!TIP]
+> **Cache Agreement Protocol**  
+> Both `apps/api` and `apps/indexer` share the exact `buildResolveCacheKey()` utility from `@tip/core`. This guarantees that cache keys written by the API are byte-for-byte identical to the keys invalidated by the indexer.
+
+---
+
+## Out-of-Order Safety
+
+Blockchains can occasionally emit WebSocket account notifications out of order under network jitter or reconnection events. 
+
+To prevent stale state overwrites, the TIP indexer compares the **Solana Slot Number** attached to each account change event:
+- If an incoming event has a slot number lower than or equal to the existing mirror row slot, it is silently ignored.
+- Only account state with a higher slot number can update the PostgreSQL mirror.
+
+---
+
+## Resilience & Degraded Modes
+
+```
++-------------------------------------------------------------------+
+|                     Normal Operating Mode                         |
+|  Client ──> API ──> Redis (Cache) ──> PostgreSQL Mirror           |
++-------------------------------------------------------------------+
+                                │
+                                ▼ (API Outage or Maintenance)
++-------------------------------------------------------------------+
+|                     Degraded / Fallback Mode                      |
+|  Client ──> Solana RPC (Direct PDA Read via TipClient)            |
++-------------------------------------------------------------------+
+```
+
+If the TIP API or PostgreSQL mirror experiences an outage:
+- Basic tag-to-wallet resolution **never breaks**.
+- Calling `TipClient.resolveOnChain("@alice")` bypasses all centralized infrastructure and fetches the verified destination wallet straight from the Solana RPC.

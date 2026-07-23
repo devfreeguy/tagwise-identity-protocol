@@ -1,0 +1,62 @@
+---
+title: Direct On-Chain Resolution
+description: Zero-dependency tag resolution straight from Solana RPC nodes without central APIs.
+---
+
+One of TIP's defining properties is that **the blockchain is authoritative**. Even if the central API, database mirror, or CDN goes offline, any application can resolve tags directly from a Solana RPC node.
+
+---
+
+## How On-Chain Resolution Works
+
+`resolveOnChain()` derives the PDA address `["tag", normalized_tag]` using `@tip/core` and fetches the raw Solana account bytes via `@solana/kit`. It decodes the account data structure and extracts the target payment wallet.
+
+```typescript
+import { TipClient } from "@tagwise/tip-sdk";
+
+// Initialize client with an RPC endpoint
+const client = new TipClient({
+  rpcUrl: "https://api.mainnet-beta.solana.com", // or devnet RPC
+});
+
+// Reads account directly from Solana cluster
+const onChainIdentity = await client.resolveOnChain("alice");
+
+if (onChainIdentity) {
+  console.log("Tag:", onChainIdentity.tag);           // "alice"
+  console.log("Owner:", onChainIdentity.owner);       // "7xKX..."
+  console.log("Wallet:", onChainIdentity.wallet);     // "9zQP..."
+  console.log("PDA Bump:", onChainIdentity.bump);     // 255
+} else {
+  console.log("Tag @alice does not exist on-chain.");
+}
+```
+
+---
+
+## Standalone Functions (No `TipClient` Class)
+
+You can also derive PDAs and resolve accounts using standalone exports:
+
+```typescript
+import { deriveTagPda, normalizeTag } from "@tagwise/tip-sdk";
+
+const result = normalizeTag("@Alice");
+if (result.ok) {
+  const { pda, bump } = deriveTagPda(result.tag);
+  console.log("Derived PDA Address:", pda);
+  console.log("Canonical Bump:", bump);
+}
+```
+
+---
+
+## Feature Comparison Matrix
+
+| Feature | `client.resolve()` (API) | `client.resolveOnChain()` (RPC) |
+| :--- | :--- | :--- |
+| **Response Latency** | Sub-millisecond (Redis) | ~100-300ms (Solana RPC) |
+| **Off-Chain Metadata** (Avatar, Bio, Display Name) | Included | `null` (not stored on-chain) |
+| **Verification / Merchant Badges** | Included | `false` |
+| **Payment Wallet Address** | Real-time | Real-time |
+| **Third-Party Dependency** | TIP REST API | Standard Solana RPC |

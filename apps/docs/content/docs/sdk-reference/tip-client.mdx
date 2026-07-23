@@ -1,0 +1,251 @@
+---
+title: TipClient Class
+description: Complete API reference for the main TipClient class.
+---
+
+The `TipClient` class is the primary entrypoint for interacting with the TIP protocol and REST API. Construction is synchronous and never touches the network until a method is called.
+
+```typescript
+import { TipClient } from "@tagwise/tip-sdk";
+```
+
+---
+
+## Constructor
+
+### `new TipClient(options?: TipClientOptions)`
+
+Instantiates a new TIP client.
+
+#### Parameters
+
+| Option | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `baseUrl` | `string` | `"https://tip.tagwise.me"` | Base URL of the TIP API instance. |
+| `rpcUrl` | `string` | `undefined` | Solana RPC HTTP URL. Required for `resolveOnChain()` and `signAndSendTransaction()`. |
+| `fetch` | `FetchLike` | `globalThis.fetch` | Custom `fetch` implementation for edge/node environments. |
+| `programId` | `string` | `TIP_REGISTRY_PROGRAM_ID` | Custom `tip_registry` program ID. |
+
+#### Example
+
+```typescript
+const client = new TipClient({
+  baseUrl: "https://tip.tagwise.me",
+  rpcUrl: "https://api.devnet.solana.com",
+});
+```
+
+---
+
+## Read Methods (No Session Required)
+
+### `resolve(tag: string): Promise<ResolveResponse>`
+
+Resolves a tag to its payment wallet and off-chain identity metadata.
+
+- **Parameters**: `tag: string` - Raw or canonical handle (e.g. `"alice"` or `"@alice"`).
+- **Returns**: `Promise<ResolveResponse>` - The tag identity record.
+- **Throws**: `TagInvalidError` (malformed format), `TagNotFoundError` (404 not registered).
+
+```typescript
+const identity = await client.resolve("@alice");
+console.log(identity.wallet); // "4vcgrBuzoWw3kBanVTtx7Pi1v9WyTJBJQsFAQMqjJZjx"
+```
+
+---
+
+### `identity(tag: string): Promise<IdentityResponse>`
+
+Fetches the complete identity record for a tag including off-chain profile fields.
+
+- **Parameters**: `tag: string`
+- **Returns**: `Promise<IdentityResponse>`
+- **Throws**: `TagNotFoundError`
+
+```typescript
+const profile = await client.identity("alice");
+console.log(profile.displayName, profile.avatar);
+```
+
+---
+
+### `availability(tag: string): Promise<AvailabilityResponse>`
+
+Checks if a handle is available for registration.
+
+- **Parameters**: `tag: string`
+- **Returns**: `Promise<AvailabilityResponse>` - `{ tag: string, available: boolean, reason?: AvailabilityReason }`
+
+> [!NOTE]
+> Unlike `resolve()`, passing a malformed tag to `availability()` does **not** throw an error. It immediately returns `{ available: false, reason: "invalid" }` without making a network round trip.
+
+```typescript
+const res = await client.availability("my_tag");
+if (res.available) {
+  console.log("Ready to register!");
+}
+```
+
+---
+
+### `search(q: string): Promise<SearchResultItem[]>`
+
+Searches registered tags by handle or display name prefix.
+
+- **Parameters**: `q: string` - Search query string.
+- **Returns**: `Promise<SearchResultItem[]>` - Array of matching search items.
+
+```typescript
+const results = await client.search("ali");
+// [{ tag: "@alice", displayName: "Alice", avatar: "..." }]
+```
+
+---
+
+### `qr(tag: string): Promise<QrResponse>`
+
+Generates a Solana Pay URL and checkout payment link payload for a tag.
+
+- **Parameters**: `tag: string`
+- **Returns**: `Promise<QrResponse>` - `{ tag, solanaPayUrl, paymentLink }`
+
+```typescript
+const qrData = await client.qr("alice");
+console.log(qrData.solanaPayUrl); // "solana:4vcgrBuzoWw3k..."
+```
+
+---
+
+### `paymentLink(tag: string): Promise<PaymentLinkResponse>`
+
+Retrieves the web checkout URL for a tag.
+
+- **Parameters**: `tag: string`
+- **Returns**: `Promise<PaymentLinkResponse>` - `{ tag, url }`
+
+```typescript
+const link = await client.paymentLink("alice");
+console.log(link.url); // "https://tagwise.me/pay/@alice"
+```
+
+---
+
+## Authentication Methods
+
+### `connect(signer: Signer): Promise<string>`
+
+Executes the full Sign-In With Solana (SIWS) authentication flow: requests a challenge, prompts the `signer` to sign it, verifies the signature, and stores the JWT session token in memory.
+
+- **Parameters**: `signer: Signer` - Object exposing `publicKey: string` and `signMessage(bytes: Uint8Array): Promise<Uint8Array>`.
+- **Returns**: `Promise<string>` - The authenticated public key.
+
+```typescript
+const pubkey = await client.connect({
+  publicKey: wallet.publicKey.toBase58(),
+  signMessage: (bytes) => wallet.signMessage(bytes),
+});
+```
+
+---
+
+### `challenge(pubkey: string): Promise<string>`
+
+Requests a single-use text challenge string for `pubkey`.
+
+- **Parameters**: `pubkey: string` - Base58 Solana public key.
+- **Returns**: `Promise<string>` - Challenge message string.
+
+---
+
+### `verify(pubkey: string, message: string, signature: string): Promise<string>`
+
+Verifies a signed challenge message and sets the session token.
+
+- **Parameters**: `pubkey: string`, `message: string`, `signature: string` (Base58 signature).
+- **Returns**: `Promise<string>` - JWT session token.
+
+---
+
+### `setSession(token: string, pubkey: string): void`
+
+Restores a previously acquired JWT session token into memory.
+
+```typescript
+client.setSession(tokenFromStorage, pubkeyFromStorage);
+```
+
+---
+
+### `disconnect(): void`
+
+Clears the active session token from client memory.
+
+```typescript
+client.disconnect();
+```
+
+---
+
+### Getters
+
+- **`get token(): string | undefined`**: Returns the active JWT session token or `undefined`.
+- **`get connectedPubkey(): string | undefined`**: Returns the connected public key or `undefined`.
+
+---
+
+## Write Methods (Session Required)
+
+> [!IMPORTANT]
+> Write methods require calling `connect()` or `setSession()` beforehand. If called without an active session, they throw `NoSessionError`.
+
+### `register(params: RegisterParams): Promise<UnsignedTransactionResponse>`
+
+Builds an unsigned `register_tag` Solana transaction.
+
+- **Parameters**: `params: RegisterParams` - `{ tag: string, wallet?: string }`.
+- **Returns**: `Promise<UnsignedTransactionResponse>` - `{ transaction: string, pda: string, lastValidBlockHeight: number }`.
+- **Throws**: `NoSessionError`, `TagInvalidError`, `RateLimitedError`.
+
+```typescript
+const res = await client.register({ tag: "myhandle" });
+```
+
+---
+
+### `updateWallet(tag: string, newWallet: string): Promise<UnsignedTransactionResponse>`
+
+Builds an unsigned `update_wallet` transaction to change the tag's on-chain destination address.
+
+- **Parameters**: `tag: string`, `newWallet: string`
+- **Returns**: `Promise<UnsignedTransactionResponse>`
+- **Throws**: `ForbiddenError` (if session pubkey is not tag owner).
+
+```typescript
+const res = await client.updateWallet("alice", "9zQP...");
+```
+
+---
+
+### `updateProfile(tag: string, fields: UpdateProfileFields): Promise<IdentityResponse>`
+
+Patches off-chain metadata fields in the database mirror.
+
+- **Parameters**: `tag: string`, `fields: UpdateProfileFields` - `{ displayName?, avatar?, bio?, preferredToken? }`.
+- **Returns**: `Promise<IdentityResponse>`
+
+```typescript
+await client.updateProfile("alice", { displayName: "Alice" });
+```
+
+---
+
+### `signAndSendTransaction(unsignedTx: string, signer: TransactionSigner): Promise<string>`
+
+Signs an unsigned base64 transaction and broadcasts it to Solana RPC.
+
+- **Parameters**: `unsignedTx: string` (Base64), `signer: TransactionSigner`.
+- **Returns**: `Promise<string>` - Solana transaction signature.
+
+```typescript
+const txId = await client.signAndSendTransaction(res.transaction, walletAdapter);
+```

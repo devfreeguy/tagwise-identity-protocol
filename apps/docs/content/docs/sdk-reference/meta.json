@@ -1,0 +1,11 @@
+{
+  "title": "SDK Reference",
+  "pages": [
+    "index",
+    "tip-client",
+    "on-chain-resolution",
+    "tag-utilities",
+    "types-and-models",
+    "errors-and-exceptions"
+  ]
+}

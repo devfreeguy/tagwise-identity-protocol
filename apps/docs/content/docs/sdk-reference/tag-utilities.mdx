@@ -1,0 +1,82 @@
+---
+title: Tag Utilities & Constants
+description: Reference for standalone tag normalization, validation functions, and protocol constants.
+---
+
+`@tagwise/tip-sdk` re-exports tag utilities from `@tip/core` so integrators can validate handles client-side without extra dependencies or network round-trips.
+
+```typescript
+import {
+  normalizeTag,
+  isValidTag,
+  isReservedTag,
+  MIN_TAG_LENGTH,
+  MAX_TAG_LENGTH,
+  ALLOWED_TAG_CHARACTERS_PATTERN,
+  RESERVED_TAGS,
+} from "@tagwise/tip-sdk";
+```
+
+---
+
+## Functions
+
+### `normalizeTag(tag: string): NormalizeTagResult`
+
+Strips leading `@`, lowercases input, and verifies canonical length and character format.
+
+```typescript
+type NormalizeTagResult =
+  | { ok: true; tag: string }
+  | { ok: false; reason: TagRejectionReason };
+
+type TagRejectionReason = "too_short" | "too_long" | "invalid_characters" | "reserved";
+```
+
+#### Example
+
+```typescript
+const res = normalizeTag("@Alice_99");
+
+if (res.ok) {
+  console.log(res.tag); // "alice_99"
+} else {
+  console.error(res.reason); // e.g. "invalid_characters"
+}
+```
+
+---
+
+### `isValidTag(tag: string): boolean`
+
+Returns `true` if `tag` is a valid canonical handle, `false` otherwise.
+
+```typescript
+if (isValidTag("alice")) {
+  console.log("Valid handle");
+}
+```
+
+---
+
+### `isReservedTag(tag: string): boolean`
+
+Returns `true` if `tag` matches the protocol's reserved words list (`admin`, `official`, `solana`, `support`, `tip`, `tagwise`, etc.).
+
+```typescript
+if (isReservedTag("admin")) {
+  console.log("Cannot register reserved handle");
+}
+```
+
+---
+
+## Exported Constants
+
+| Constant | Type | Value | Description |
+| :--- | :--- | :--- | :--- |
+| **`MIN_TAG_LENGTH`** | `number` | `3` | Minimum allowed tag handle length. |
+| **`MAX_TAG_LENGTH`** | `number` | `32` | Maximum allowed tag handle length. |
+| **`ALLOWED_TAG_CHARACTERS_PATTERN`** | `RegExp` | `/^[a-z0-9_-]+$/` | Regular expression for canonical tag characters. |
+| **`RESERVED_TAGS`** | `ReadonlySet<string>` | `Set(...)` | Set of protocol reserved handles. |
+| **`DEFAULT_BASE_URL`** | `string` | `"https://tip.tagwise.me"` | Default TIP API base URL. |

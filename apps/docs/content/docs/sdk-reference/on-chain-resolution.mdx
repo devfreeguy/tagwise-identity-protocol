@@ -1,0 +1,77 @@
+---
+title: On-Chain Resolution & PDA API
+description: Reference for direct Solana RPC tag resolution methods and PDA seed derivation utilities.
+---
+
+This section covers functions used to interact directly with the Solana blockchain without relying on the central API.
+
+---
+
+## `client.resolveOnChain(tag: string)`
+
+Method on `TipClient` that resolves a handle straight from Solana RPC.
+
+```typescript
+async resolveOnChain(tag: string): Promise<OnChainIdentity | null>
+```
+
+### Parameters
+
+- `tag`: `string` - Raw or canonical handle (e.g. `"alice"`).
+
+### Return Value
+
+Returns `Promise<OnChainIdentity | null>`:
+- Returns an `OnChainIdentity` object if the tag account exists on-chain.
+- Returns `null` if the account does not exist.
+
+```typescript
+type OnChainIdentity = {
+  tag: string;       // Normalized tag handle (e.g. "alice")
+  owner: string;     // Base58 Solana public key of the tag owner
+  wallet: string;    // Base58 Solana public key of the payment destination
+  bump: number;      // Canonical PDA bump (0-255)
+  verified: false;   // Always false on direct chain reads
+  merchant: false;   // Always false on direct chain reads
+  displayName: null; // Always null on direct chain reads
+  avatar: null;      // Always null on direct chain reads
+  bio: null;         // Always null on direct chain reads
+  preferredToken: null;
+};
+```
+
+---
+
+## `deriveTagPda(tag: string, programId?: string)`
+
+Derives the Program Derived Address (PDA) for a tag handle locally.
+
+```typescript
+import { deriveTagPda } from "@tagwise/tip-sdk";
+
+function deriveTagPda(
+  tag: string,
+  programId?: string
+): { pda: string; bump: number }
+```
+
+### Parameters
+
+- `tag`: `string` - Normalized handle string (must already be lowercased ASCII).
+- `programId` *(Optional)*: `string` - Custom program ID. Defaults to `TIP_REGISTRY_PROGRAM_ID`.
+
+### Return Value
+
+Returns `{ pda: string, bump: number }`:
+- `pda`: Base58-encoded PDA address.
+- `bump`: Canonical bump byte.
+
+### Code Example
+
+```typescript
+import { deriveTagPda } from "@tagwise/tip-sdk";
+
+const { pda, bump } = deriveTagPda("alice");
+console.log("PDA Address:", pda);
+console.log("Bump:", bump);
+```

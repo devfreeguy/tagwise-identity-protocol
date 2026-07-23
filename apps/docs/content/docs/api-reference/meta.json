@@ -1,5 +1,5 @@
 {
-  "title": "API Reference",
+  "title": "REST API Reference",
   "pages": [
     "TagsController_resolve",
     "TagsController_identity",

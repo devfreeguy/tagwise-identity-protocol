@@ -1,4 +1,11 @@
 {
-  "title": "Concepts",
-  "pages": ["index", "tags", "addresses-and-pdas", "source-of-truth", "ownership"]
+  "title": "Protocol Concepts",
+  "pages": [
+    "index",
+    "architecture",
+    "source-of-truth",
+    "pdas-and-accounts",
+    "tag-rules-and-moderation",
+    "security-and-auth"
+  ]
 }

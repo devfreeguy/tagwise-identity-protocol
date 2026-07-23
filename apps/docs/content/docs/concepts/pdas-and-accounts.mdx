@@ -1,0 +1,61 @@
+---
+title: PDAs & Account Storage
+description: Technical details of Program Derived Address (PDA) seed derivation and on-chain account data layout.
+---
+
+Every tag registered on TIP is stored as an individual account on the Solana blockchain owned by the `tip_registry` program. 
+
+---
+
+## Seed Derivation Scheme
+
+Tag accounts are **Program Derived Addresses (PDAs)**. Because PDAs are derived deterministically without a private key, tag uniqueness is enforced directly by Solana runtime account initialization.
+
+The PDA for any handle is derived using two seed byte arrays:
+
+```typescript
+import { PublicKey } from "@solana/web3.js";
+
+const [pda, bump] = PublicKey.findProgramAddressSync(
+  [
+    Buffer.from("tag", "utf-8"),
+    Buffer.from(normalizedTag, "utf-8"), // e.g. "alice"
+  ],
+  PROGRAM_ID
+);
+```
+
+> [!NOTE]
+> **Deterministic Uniqueness**  
+> Because `normalizeTag("Alice")` produces `"alice"`, there is exactly **one** PDA address possible for `@alice` on the entire Solana cluster. Attempts to register `@alice` a second time fail at the Solana runtime level because the account already exists.
+
+---
+
+## On-Chain Account Layout
+
+Each tag account stores a binary struct with the following layout:
+
+```rust
+// Rust Account Struct (programs/tip-registry/src/state.rs)
+pub struct TagAccount {
+    pub discriminator: [u8; 8],  // Anchor/Borsh 8-byte discriminator
+    pub tag: String,             // Max 32 UTF-8 bytes (stored with 4-byte length prefix)
+    pub owner: Pubkey,           // 32-byte Solana Public Key (Tag Owner)
+    pub wallet: Pubkey,          // 32-byte Solana Public Key (Payment Destination)
+    pub bump: u8,                // 1-byte PDA canonical bump
+}
+```
+
+### Field Definitions
+
+1. **`discriminator`** (`[u8; 8]`): First 8 bytes of the SHA-256 hash of `account:TagAccount`. Ensures the account type cannot be confused with other program accounts.
+2. **`tag`** (`String`): The canonical normalized handle (e.g., `"alice"`).
+3. **`owner`** (`Pubkey`): The wallet that registered the tag. Only this pubkey can sign transactions to update `wallet`.
+4. **`wallet`** (`Pubkey`): The target address where funds should be delivered when sending tokens or SOL to `@alice`. Defaults to `owner` at registration.
+5. **`bump`** (`u8`): The canonical bump seed that places the derived address off the ed25519 elliptic curve.
+
+---
+
+## Rent Exemption
+
+When a user registers a tag, their wallet deposits a small amount of SOL (approx. **0.0016 SOL**) to cover the account's rent-exempt storage fee. This SOL remains stored in the tag's PDA account on-chain.

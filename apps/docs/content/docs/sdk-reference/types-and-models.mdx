@@ -1,0 +1,150 @@
+---
+title: Types & Models
+description: TypeScript interfaces, options, and model definitions exported by @tagwise/tip-sdk.
+---
+
+This page provides full type definitions for all objects used in `@tagwise/tip-sdk`.
+
+---
+
+## Client Options
+
+### `TipClientOptions`
+
+```typescript
+type TipClientOptions = Readonly<{
+  baseUrl?: string;   // Base URL of TIP API (default: "https://tip.tagwise.me")
+  rpcUrl?: string;    // Solana RPC URL for direct chain reads & submitting txs
+  fetch?: FetchLike;  // Custom fetch implementation
+  rpc?: SolanaRpc;    // Pre-built @solana/kit RPC client instance
+  programId?: string; // Custom program ID
+}>;
+```
+
+---
+
+## Response Models
+
+### `ResolveResponse` & `IdentityResponse`
+
+```typescript
+type ResolveResponse = {
+  tag: string;                 // e.g. "@alice"
+  owner: string;               // Base58 Solana public key of owner
+  wallet: string;              // Base58 Solana public key of payment destination
+  verified: boolean;           // Verified identity flag
+  merchant: boolean;           // Merchant status flag
+  displayName: string | null;  // Human-readable display name
+  avatar: string | null;       // Avatar image URL
+  bio: string | null;          // User biography text
+  preferredToken: string | null; // e.g. "SOL" or "USDC"
+  paymentLink: string;         // Universal payment URL
+};
+
+type IdentityResponse = ResolveResponse;
+```
+
+---
+
+### `AvailabilityResponse`
+
+```typescript
+type AvailabilityResponse = {
+  tag: string;
+  available: boolean;
+  reason?: "taken" | "invalid" | "reserved";
+};
+```
+
+---
+
+### `UnsignedTransactionResponse`
+
+```typescript
+type UnsignedTransactionResponse = {
+  transaction: string;         // Base64 encoded unsigned Solana transaction
+  pda: string;                 // Derived tag PDA address
+  lastValidBlockHeight: number; // Expiration block height
+};
+```
+
+---
+
+### `QrResponse`
+
+```typescript
+type QrResponse = {
+  tag: string;
+  solanaPayUrl: string; // "solana:<wallet>" payload
+  paymentLink: string;  // "https://tagwise.me/pay/@<tag>"
+};
+```
+
+---
+
+### `PaymentLinkResponse`
+
+```typescript
+type PaymentLinkResponse = {
+  tag: string;
+  url: string; // Checkout URL
+};
+```
+
+---
+
+### `SearchResultItem`
+
+```typescript
+type SearchResultItem = {
+  tag: string;
+  displayName: string | null;
+  avatar: string | null;
+  verified: boolean;
+};
+```
+
+---
+
+## Parameter Types
+
+### `RegisterParams`
+
+```typescript
+type RegisterParams = {
+  tag: string;      // Tag handle to register (e.g. "alice")
+  wallet?: string;  // Optional payment destination wallet pubkey (defaults to owner)
+};
+```
+
+### `UpdateProfileFields`
+
+```typescript
+type UpdateProfileFields = {
+  displayName?: string | null;
+  avatar?: string | null;
+  bio?: string | null;
+  preferredToken?: string | null;
+};
+```
+
+---
+
+## Signer Interfaces
+
+### `Signer` (SIWS Authentication)
+
+```typescript
+type Signer = {
+  publicKey: string;
+  signMessage(bytes: Uint8Array): Promise<Uint8Array>;
+};
+```
+
+### `TransactionSigner` (Submitting Transactions)
+
+```typescript
+type TransactionSigner = {
+  signTransaction(bytes: Uint8Array): Promise<Uint8Array>;
+};
+```

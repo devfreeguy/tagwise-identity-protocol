@@ -1,0 +1,65 @@
+---
+title: Managing Profiles & Wallets
+description: Updating off-chain identity profile metadata and on-chain payment destination wallets.
+---
+
+TIP handles two types of identity updates: **Off-Chain Profile Metadata** (instant, free) and **On-Chain Payment Wallet** (requires a Solana transaction).
+
+---
+
+## 1. Updating Off-Chain Profile Metadata
+
+Off-chain profile fields (`displayName`, `avatar`, `bio`, `preferredToken`) are stored in the TIP database mirror. Updating these fields is instant, requires no gas/SOL, and takes effect immediately.
+
+### Code Example
+
+```typescript
+import { TipClient } from "@tagwise/tip-sdk";
+
+async function updateProfileInfo(client: TipClient, tag: string) {
+  // Requires connected SIWS session matching tag owner
+  const updatedIdentity = await client.updateProfile(tag, {
+    displayName: "Alice Smith",
+    avatar: "https://example.com/avatar.png",
+    bio: "Building decentralized apps on Solana 🚀",
+    preferredToken: "USDC",
+  });
+
+  console.log("Updated Display Name:", updatedIdentity.displayName);
+  console.log("Updated Avatar:", updatedIdentity.avatar);
+}
+```
+
+> [!TIP]
+> **Clearing Fields**  
+> To leave a field unchanged, omit it from the object. To explicitly clear a field (e.g. remove a bio), pass `null`: `{ bio: null }`.
+
+---
+
+## 2. Updating On-Chain Payment Wallet
+
+Changing the destination wallet where payments are sent when someone resolves `@tag` is an **on-chain operation**. 
+
+```typescript
+async function changeDestinationWallet(
+  client: TipClient,
+  walletAdapter: any,
+  tag: string,
+  newWalletAddress: string
+) {
+  // Step 1: Request unsigned update_wallet transaction from API
+  const unsignedRes = await client.updateWallet(tag, newWalletAddress);
+
+  // Step 2: Sign and submit transaction
+  const txSignature = await client.signAndSendTransaction(
+    unsignedRes.transaction,
+    walletAdapter
+  );
+
+  console.log("Payment wallet updated on-chain! Tx:", txSignature);
+}
+```
+
+> [!IMPORTANT]
+> **Owner Authorization Required**  
+> The session pubkey submitting `updateWallet()` must match the tag's on-chain **Owner** address. If a non-owner attempts to update the wallet, the API returns `403 Forbidden`.

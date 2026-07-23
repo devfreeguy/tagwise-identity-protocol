@@ -1,13 +1,28 @@
 ---
-title: Concepts
-description: The ideas the rest of the docs assume you already have.
+title: Protocol Concepts
+description: Core technical concepts and architecture of the Tagwise Identity Protocol (TIP).
 ---
 
-Four things worth understanding before you build against TIP: how a tag is
-normalized, how it becomes an address, what lives on-chain versus in the
-mirror, and what the owner/wallet split actually means.
+Understanding TIP's architecture and design guarantees helps developers build resilient, high-performance applications.
 
-- [Tags](/docs/concepts/tags): the canonical form every tag is reduced to.
-- [Addresses and PDAs](/docs/concepts/addresses-and-pdas): how a tag becomes an address.
-- [Source of truth and the mirror](/docs/concepts/source-of-truth): what lives where, and who can write it.
-- [Ownership](/docs/concepts/ownership): the owner controls the tag; the wallet is only where payments go.
+---
+
+## Key Pillars
+
+<Cards>
+  <Card title="Architecture Overview" href="/docs/concepts/architecture">
+    Discover how the Solana program, indexer, PostgreSQL mirror, Redis cache, and SDK coordinate.
+  </Card>
+  <Card title="Source of Truth vs Mirror" href="/docs/concepts/source-of-truth">
+    Learn why Solana is the ultimate authority and how off-chain indexing delivers speed with zero lock-in.
+  </Card>
+  <Card title="PDAs & Account Storage" href="/docs/concepts/pdas-and-accounts">
+    Examine the on-chain account structure, PDA seed derivation, rent exemption, and account layout.
+  </Card>
+  <Card title="Tag Rules & Moderation" href="/docs/concepts/tag-rules-and-moderation">
+    Explore normalization rules, profanity filters, leetspeak detection, and 3-tier moderation.
+  </Card>
+  <Card title="Security & Authentication" href="/docs/concepts/security-and-auth">
+    Understand non-custodial Sign-In With Solana (SIWS), JWT session handling, and Owner vs. Payment Wallet permissions.
+  </Card>
+</Cards>
