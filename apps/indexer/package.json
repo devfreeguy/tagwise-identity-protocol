@@ -8,6 +8,7 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/main.js",
     "dev": "node --enable-source-maps dist/main.js",
+    "backfill:moderation": "node dist/backfill-moderation-cli.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "format": "echo \"no formatter configured yet\""
@@ -16,6 +17,7 @@
     "@solana/kit": "7.0.0",
     "@tip/core": "workspace:*",
     "@tip/db": "workspace:*",
+    "@tip/moderation": "workspace:*",
     "dotenv": "17.4.2",
     "ioredis": "5.11.1",
     "node-cron": "4.6.0",

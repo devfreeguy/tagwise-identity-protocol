@@ -1,6 +1,7 @@
 import { ForbiddenException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { buildResolveCacheKey, normalizeTag, type NormalizedTag } from "@tip/core";
 import type { Identity, Prisma, PrismaClient } from "@tip/db";
+import { isBlockedName } from "@tip/moderation";
 
 import { ConfigService } from "../config/config.service.js";
 import { DB_CLIENT } from "../db/db.module.js";
@@ -15,7 +16,6 @@ import type { SearchResultItemDto } from "./dto/search-result.dto.js";
 import type { UpdateIdentityRequestDto } from "./dto/update-identity-request.dto.js";
 import { buildPaymentLink, buildProfileLink, buildQrLink } from "./links.js";
 import { checkNamingGate } from "./naming-gate.js";
-import { isBlockedName } from "./profanity.js";
 import { presentTag } from "./tag-param.js";
 
 /** Which of the four editable fields were present as a key in the raw request body, independent of their value. */

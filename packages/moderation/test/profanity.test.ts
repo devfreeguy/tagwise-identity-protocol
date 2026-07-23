@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { isBlockedName } from "../src/tags/profanity.js";
+import { isBlockedName } from "../src/profanity.js";
 
 describe("isBlockedName", () => {
   it("blocks an obvious profane tag", () => {

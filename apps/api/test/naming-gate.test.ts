@@ -1,15 +1,7 @@
 import type { PrismaClient } from "@tip/db";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-const { isBlockedNameMock } = vi.hoisted(() => ({
-  isBlockedNameMock: vi.fn().mockReturnValue({ blocked: false }),
-}));
-
-vi.mock("../src/tags/profanity.js", () => ({
-  isBlockedName: isBlockedNameMock,
-}));
-
-const { checkNamingGate } = await import("../src/tags/naming-gate.js");
+import { checkNamingGate } from "../src/tags/naming-gate.js";
 
 function makeFakeDb() {
   return {
@@ -18,29 +10,22 @@ function makeFakeDb() {
 }
 
 describe("checkNamingGate", () => {
-  beforeEach(() => {
-    isBlockedNameMock.mockClear();
-    isBlockedNameMock.mockReturnValue({ blocked: false });
-  });
-
-  it("checks reserved before profanity: a reserved tag never reaches the profanity check", async () => {
+  it("checks reserved before profanity: a reserved tag never reaches the mirror", async () => {
     const db = makeFakeDb();
 
     const result = await checkNamingGate(db, "admin" as never);
 
     expect(result).toEqual({ available: false, reason: "reserved" });
-    expect(isBlockedNameMock).not.toHaveBeenCalled();
     expect(db.identity.findUnique).not.toHaveBeenCalled();
   });
 
-  it("returns inappropriate when the profanity check blocks a non-reserved tag", async () => {
-    isBlockedNameMock.mockReturnValue({ blocked: true, reason: "profanity" });
+  it("returns inappropriate when the shared moderation gate blocks a non-reserved tag", async () => {
     const db = makeFakeDb();
 
-    const result = await checkNamingGate(db, "notreserved" as never);
+    const result = await checkNamingGate(db, "fuck" as never);
 
     expect(result).toEqual({ available: false, reason: "inappropriate" });
-    expect(isBlockedNameMock).toHaveBeenCalledWith("notreserved");
+    expect(db.identity.findUnique).not.toHaveBeenCalled();
   });
 
   it("returns already_registered when the mirror has any row for the tag", async () => {
