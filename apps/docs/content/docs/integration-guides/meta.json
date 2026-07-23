@@ -1,5 +1,6 @@
 {
   "title": "Integration Guides",
+  "icon": "IconPlug",
   "pages": [
     "index",
     "registering-a-tag",

@@ -1,5 +1,6 @@
 {
   "title": "REST API Reference",
+  "icon": "IconServer",
   "pages": [
     "index",
     "TagsController_resolve",

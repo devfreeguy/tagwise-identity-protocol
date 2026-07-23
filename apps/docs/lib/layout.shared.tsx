@@ -17,33 +17,6 @@ export function baseOptions(): BaseLayoutProps {
         </>
       ),
     },
-    links: [
-      {
-        icon: <IconCompass size={18} />,
-        text: "Concepts",
-        url: "/concepts",
-      },
-      {
-        icon: <IconBolt size={18} />,
-        text: "Quickstart",
-        url: "/quickstart",
-      },
-      {
-        icon: <IconPlug size={18} />,
-        text: "Guides",
-        url: "/integration-guides",
-      },
-      {
-        icon: <IconCode size={18} />,
-        text: "SDK",
-        url: "/sdk-reference",
-      },
-      {
-        icon: <IconServer size={18} />,
-        text: "API",
-        url: "/api-reference",
-      },
-    ],
     githubUrl: "https://github.com/devfreeguy/tagwise-identity-protocol",
   };
 }

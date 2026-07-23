@@ -1,5 +1,6 @@
 {
   "title": "SDK Reference",
+  "icon": "IconCode",
   "pages": [
     "index",
     "tip-client",
