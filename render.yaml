@@ -63,6 +63,7 @@ services:
       pnpm install --frozen-lockfile &&
       pnpm --filter @tip/db build &&
       pnpm --filter @tip/core build &&
+      pnpm --filter @tip/moderation build &&
       pnpm --filter @tip/api build
     startCommand: node apps/api/dist/main.js
     healthCheckPath: /health
@@ -77,6 +78,7 @@ services:
         - apps/api/**
         - packages/core/**
         - packages/db/**
+        - packages/moderation/**
         - package.json
         - pnpm-lock.yaml
         - pnpm-workspace.yaml
@@ -139,6 +141,7 @@ services:
       pnpm install --frozen-lockfile &&
       pnpm --filter @tip/db build &&
       pnpm --filter @tip/core build &&
+      pnpm --filter @tip/moderation build &&
       pnpm --filter @tip/indexer build
     startCommand: node apps/indexer/dist/main.js
     # MUST stay exactly 1. Two running instances both subscribe to the same
@@ -176,6 +179,7 @@ services:
         - apps/indexer/**
         - packages/core/**
         - packages/db/**
+        - packages/moderation/**
         - package.json
         - pnpm-lock.yaml
         - pnpm-workspace.yaml

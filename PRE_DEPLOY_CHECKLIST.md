@@ -25,9 +25,9 @@ walkthrough behind each item.
 
 - [ ] From a clean `node_modules`/`dist` state, run, from the repo root:
       `pnpm install --frozen-lockfile`, then
-      `pnpm --filter @tip/db build`, `pnpm --filter @tip/core build`,
+      `pnpm --filter @tip/db build`, `pnpm --filter @tip/core build`, `pnpm --filter @tip/moderation build`,
       `pnpm --filter @tip/api build`, `pnpm --filter @tip/indexer build`.
-      All four should complete with no errors, and `packages/db` should
+      All five should complete with no errors, and `packages/db` should
       show `prisma generate` running before its `tsc` step.
 - [ ] Confirm `apps/api/dist/main.js` and `apps/indexer/dist/main.js`
       exist and that `node apps/api/dist/main.js` /

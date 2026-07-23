@@ -1,6 +1,6 @@
 {
   "framework": "nextjs",
   "installCommand": "cd ../.. && corepack enable && pnpm install --frozen-lockfile",
-  "buildCommand": "cd ../.. && pnpm --filter @tip/db build && pnpm --filter @tip/core build && pnpm --filter @tagwise/tip-sdk build && pnpm --filter @tip/api build && pnpm --filter @tip/api export:openapi && pnpm --filter @tip/docs build",
+  "buildCommand": "cd ../.. && pnpm --filter @tip/db build && pnpm --filter @tip/core build && pnpm --filter @tip/moderation build && pnpm --filter @tagwise/tip-sdk build && pnpm --filter @tip/api build && pnpm --filter @tip/api export:openapi && pnpm --filter @tip/docs build",
   "outputDirectory": ".next"
 }

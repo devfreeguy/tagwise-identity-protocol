@@ -51,6 +51,7 @@ corepack enable
 pnpm install --frozen-lockfile
 pnpm --filter @tip/db build      # prisma generate, then tsc
 pnpm --filter @tip/core build    # tsc
+pnpm --filter @tip/moderation build  # tsc
 pnpm --filter @tip/api build     # tsc (or @tip/indexer build for that service)
 ```
 
