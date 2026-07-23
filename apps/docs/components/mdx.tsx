@@ -9,12 +9,12 @@ import { Mermaid } from "@/components/mermaid";
 export function getMDXComponents(components?: MDXComponents): MDXComponents {
   return {
     ...defaultMdxComponents,
-    // Tabs / Tab — used in installation snippets and multi-language examples
+    // Tabs / Tab - used in installation snippets and multi-language examples
     Tabs,
     Tab,
-    // Callout — renders alert blocks ([!NOTE], [!TIP], etc.)
+    // Callout - renders alert blocks ([!NOTE], [!TIP], etc.)
     Callout,
-    // Mermaid — renders ```mermaid … ``` diagrams client-side
+    // Mermaid - renders ```mermaid ... ``` diagrams client-side
     Mermaid,
     ...components,
   } satisfies MDXComponents;

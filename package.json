@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
+    "build:docs": "turbo run build --filter=@tip/api... --filter=@tip/docs... && pnpm --filter @tip/api export:openapi && pnpm --filter @tip/docs build",
     "lint": "turbo run lint",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",

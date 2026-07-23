@@ -12,6 +12,7 @@
     "format": "echo \"no formatter configured yet\""
   },
   "dependencies": {
+    "@tabler/icons-react": "^3.45.0",
     "@tagwise/tip-sdk": "workspace:*",
     "fumadocs-core": "16.12.0",
     "fumadocs-mdx": "15.2.0",
