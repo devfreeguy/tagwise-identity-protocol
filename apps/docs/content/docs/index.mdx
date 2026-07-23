@@ -21,9 +21,10 @@ TIP is an open identity layer on Solana that maps short, human-readable handles 
 
 ## Architectural Principles
 
-> [!NOTE]
-> **Source of Truth vs. Off-Chain Mirror**  
-> The Solana blockchain program (`tip_registry`) owns all tag registrations, ownership records, and destination payment wallets. The off-chain API service mirrors on-chain state to provide sub-millisecond response times and rich metadata.
+<Callout type="info" title="Source of Truth vs. Off-Chain Mirror">
+  The Solana blockchain program (`tip_registry`) owns all tag registrations, ownership records, and destination payment wallets. The off-chain API service mirrors on-chain state to provide sub-millisecond response times and rich metadata.
+</Callout>
+
 
 ```mermaid
 graph TD

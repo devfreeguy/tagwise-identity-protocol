@@ -33,9 +33,10 @@ if (result.ok) {
 
 ## Anti-Phishing: ASCII Homoglyph Prevention
 
-> [!WARNING]
-> **Why Unicode / Emoji Handles Are Rejected**  
-> Allowing Unicode characters opens the door to **homoglyph phishing attacks**. For example, the Cyrillic `а` (`U+0430`) and Latin `a` (`U+0061`) render identically in standard UI fonts. Phishers could register a visual duplicate of `@binance` to steal payments. TIP strictly enforces ASCII `[a-z0-9_-]` to eliminate homoglyph spoofing completely.
+<Callout type="warn" title="Why Unicode / Emoji Handles Are Rejected">
+  Allowing Unicode characters opens the door to **homoglyph phishing attacks**. For example, the Cyrillic `а` (`U+0430`) and Latin `a` (`U+0061`) render identically in standard UI fonts. Phishers could register a visual duplicate of `@binance` to steal payments. TIP strictly enforces ASCII `[a-z0-9_-]` to eliminate homoglyph spoofing completely.
+</Callout>
+
 
 ---
 

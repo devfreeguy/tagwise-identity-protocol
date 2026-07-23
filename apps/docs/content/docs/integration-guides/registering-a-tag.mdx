@@ -52,9 +52,10 @@ async function registerUserTag(client: TipClient, walletAdapter: any, desiredTag
 
 ## Important Constraints & Errors
 
-> [!WARNING]
-> **Rent Exemption Fee**  
-> The wallet executing the transaction must hold a minimum SOL balance (approx **0.002 SOL**) to pay for transaction fees and the PDA account's rent-exempt deposit. If the wallet balance is insufficient, the transaction will fail.
+<Callout type="warn" title="Rent Exemption Fee">
+  The wallet executing the transaction must hold a minimum SOL balance (approx **0.002 SOL**) to pay for transaction fees and the PDA account's rent-exempt deposit. If the wallet balance is insufficient, the transaction will fail.
+</Callout>
+
 
 ### Handling Specific Errors
 

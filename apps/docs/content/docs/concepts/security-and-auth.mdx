@@ -59,6 +59,7 @@ Every tag account maintains two distinct public keys:
 | **`owner`** | Authoritative controller of the tag. | **YES** | Cold Wallet / Ledger / Primary Wallet |
 | **`wallet`** | Destination address for incoming funds. | **NO** | Merchant Wallet / Hot Wallet / Exchange |
 
-> [!TIP]
-> **Separation of Control & Funds**  
-> An organization can keep a tag's **Owner** key in a hardware wallet or multisig while setting the **Payment Wallet** to a hot trading account or payment processor. Changing the payment wallet requires a transaction signed by `owner`, but `wallet` itself gains zero administrative privileges.
+<Callout type="info" title="Separation of Control &amp; Funds">
+  An organization can keep a tag's **Owner** key in a hardware wallet or multisig while setting the **Payment Wallet** to a hot trading account or payment processor. Changing the payment wallet requires a transaction signed by `owner`, but `wallet` itself gains zero administrative privileges.
+</Callout>
+

@@ -25,9 +25,10 @@ const [pda, bump] = PublicKey.findProgramAddressSync(
 );
 ```
 
-> [!NOTE]
-> **Deterministic Uniqueness**  
-> Because `normalizeTag("Alice")` produces `"alice"`, there is exactly **one** PDA address possible for `@alice` on the entire Solana cluster. Attempts to register `@alice` a second time fail at the Solana runtime level because the account already exists.
+<Callout type="info" title="Deterministic Uniqueness">
+  Because `normalizeTag("Alice")` produces `"alice"`, there is exactly **one** PDA address possible for `@alice` on the entire Solana cluster. Attempts to register `@alice` a second time fail at the Solana runtime level because the account already exists.
+</Callout>
+
 
 ---
 

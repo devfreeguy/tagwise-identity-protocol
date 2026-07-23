@@ -2,6 +2,8 @@ import Image from "next/image";
 
 import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
 
+import { VersionBadges } from "@/components/version-badges";
+
 /**
  * Shared chrome (nav title/links) between the docs layout and any other
  * layout this app adds later. Kept in one place so they can never drift.
@@ -11,11 +13,13 @@ export function baseOptions(): BaseLayoutProps {
     nav: {
       title: (
         <>
-          <Image src="/logo.jpg" alt="TIP" width={24} height={24} className="rounded-md" />
-          TIP
+          <Image src="/logo.jpg" alt="Tagwise" width={24} height={24} className="rounded-md" />
+          Tagwise
+          <VersionBadges />
         </>
       ),
     },
     githubUrl: "https://github.com/devfreeguy/tagwise-identity-protocol",
   };
 }
+

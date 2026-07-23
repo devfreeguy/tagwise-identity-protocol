@@ -47,9 +47,10 @@ User App  ───>  TipClient.resolve("@alice")
 
 ### 2. Tag Registration Path (Write)
 
-> [!IMPORTANT]
-> **Non-Custodial Security**  
-> Neither the API nor the SDK ever handles private keys. The API generates an unsigned base64 transaction, which the user's wallet signs and broadcasts directly to the Solana network.
+<Callout type="warn" title="Non-Custodial Security">
+  Neither the API nor the SDK ever handles private keys. The API generates an unsigned base64 transaction, which the user's wallet signs and broadcasts directly to the Solana network.
+</Callout>
+
 
 1. **Client Authenticates**: The client completes SIWS wallet challenge/verify flow and receives a JWT session token.
 2. **Build Transaction**: Client calls `TipClient.register({ tag: "alice" })`. The API validates tag format, checks off-chain moderation, and returns an unsigned `register_tag` transaction.

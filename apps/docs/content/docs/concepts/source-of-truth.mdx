@@ -31,9 +31,10 @@ The `apps/indexer` service monitors the Solana cluster via WebSocket logs and RP
 2. **PostgreSQL Mirror Update**: The indexer performs an idempotent write (`UPSERT`) into the PostgreSQL database mirror.
 3. **Redis Cache Invalidation**: The indexer constructs the exact Redis key for `@tag` (`tip:devnet:resolve:alice`) and issues a `DEL` command.
 
-> [!TIP]
-> **Cache Agreement Protocol**  
-> Both `apps/api` and `apps/indexer` share the exact `buildResolveCacheKey()` utility from `@tip/core`. This guarantees that cache keys written by the API are byte-for-byte identical to the keys invalidated by the indexer.
+<Callout type="info" title="Cache Agreement Protocol">
+  Both `apps/api` and `apps/indexer` share the exact `buildResolveCacheKey()` utility from `@tip/core`. This guarantees that cache keys written by the API are byte-for-byte identical to the keys invalidated by the indexer.
+</Callout>
+
 
 ---
 

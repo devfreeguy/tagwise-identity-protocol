@@ -30,9 +30,10 @@ async function updateProfileInfo(client: TipClient, tag: string) {
 }
 ```
 
-> [!TIP]
-> **Clearing Fields**  
-> To leave a field unchanged, omit it from the object. To explicitly clear a field (e.g. remove a bio), pass `null`: `{ bio: null }`.
+<Callout type="info" title="Clearing Fields">
+  To leave a field unchanged, omit it from the object. To explicitly clear a field (e.g. remove a bio), pass `null`: `\{ bio: null \}`.
+</Callout>
+
 
 ---
 
@@ -60,6 +61,7 @@ async function changeDestinationWallet(
 }
 ```
 
-> [!IMPORTANT]
-> **Owner Authorization Required**  
-> The session pubkey submitting `updateWallet()` must match the tag's on-chain **Owner** address. If a non-owner attempts to update the wallet, the API returns `403 Forbidden`.
+<Callout type="warn" title="Owner Authorization Required">
+  The session pubkey submitting `updateWallet()` must match the tag's on-chain **Owner** address. If a non-owner attempts to update the wallet, the API returns `403 Forbidden`.
+</Callout>
+

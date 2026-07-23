@@ -9,10 +9,10 @@ import { RootProvider } from "fumadocs-ui/provider/next";
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | TIP Docs",
-    default: "TIP Docs",
+    template: "%s | Tagwise Docs",
+    default: "Tagwise Docs",
   },
-  description: "Documentation for TIP: public identity resolution for @tag payments on Solana.",
+  description: "Official documentation for Tagwise Identity Protocol (TIP): public identity resolution for @tag payments on Solana.",
   icons: {
     icon: "/logo.jpg",
   },

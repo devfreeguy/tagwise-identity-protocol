@@ -76,8 +76,10 @@ Checks if a handle is available for registration.
 - **Parameters**: `tag: string`
 - **Returns**: `Promise<AvailabilityResponse>` - `{ tag: string, available: boolean, reason?: AvailabilityReason }`
 
-> [!NOTE]
-> Unlike `resolve()`, passing a malformed tag to `availability()` does **not** throw an error. It immediately returns `{ available: false, reason: "invalid" }` without making a network round trip.
+<Callout type="info" title="Availability vs. Resolve behaviour">
+  Unlike `resolve()`, passing a malformed tag to `availability()` does **not** throw an error. It immediately returns `\{ available: false, reason: "invalid" \}` without making a network round trip.
+</Callout>
+
 
 ```typescript
 const res = await client.availability("my_tag");
@@ -195,8 +197,10 @@ client.disconnect();
 
 ## Write Methods (Session Required)
 
-> [!IMPORTANT]
-> Write methods require calling `connect()` or `setSession()` beforehand. If called without an active session, they throw `NoSessionError`.
+<Callout type="warn" title="Session Required">
+  Write methods require calling `connect()` or `setSession()` beforehand. If called without an active session, they throw `NoSessionError`.
+</Callout>
+
 
 ### `register(params: RegisterParams): Promise<UnsignedTransactionResponse>`
 
