@@ -1,12 +1,15 @@
 # Tagwise Identity Protocol (TIP)
 
+> [!NOTE]
+> **Current Status:** TIP is currently deployed and running on **Solana Devnet**.
+
 > An open, non-custodial identity layer on Solana that maps short, human-readable handles (e.g. `@alice`) to wallet addresses and rich off-chain profile metadata.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 [![pnpm](https://img.shields.io/badge/managed_with-pnpm-orange.svg)](https://pnpm.io)
 [![Turborepo](https://img.shields.io/badge/built_with-Turborepo-ef4444.svg)](https://turbo.build)
 [![Node.js >=24](https://img.shields.io/badge/node-%3E%3D24-green.svg)](https://nodejs.org)
-[![Solana](https://img.shields.io/badge/chain-Solana-9945ff.svg)](https://solana.com)
+[![Solana Devnet](https://img.shields.io/badge/chain-Solana_Devnet-9945ff.svg)](https://solana.com)
 
 ---
 

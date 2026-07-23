@@ -1,5 +1,4 @@
 import Image from "next/image";
-import { IconBook, IconCompass, IconBolt, IconPlug, IconCode, IconServer } from "@tabler/icons-react";
 
 import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
 
@@ -11,10 +10,13 @@ export function baseOptions(): BaseLayoutProps {
   return {
     nav: {
       title: (
-        <>
+        <span className="flex items-center gap-2">
           <Image src="/logo.jpg" alt="Tagwise" width={24} height={24} className="rounded-md" />
-          Tagwise
-        </>
+          <span className="font-semibold">Tagwise</span>
+          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500 border border-amber-500/20">
+            Devnet
+          </span>
+        </span>
       ),
     },
     githubUrl: "https://github.com/devfreeguy/tagwise-identity-protocol",

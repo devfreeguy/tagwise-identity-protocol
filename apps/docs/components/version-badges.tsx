@@ -24,7 +24,7 @@ function Badge({ label, version, color }: BadgeProps) {
         fontWeight: 600,
         letterSpacing: "0.02em",
         lineHeight: 1,
-        padding: "2px 6px",
+        padding: "3px 4px",
         borderRadius: "999px",
         background: color,
         color: "#fff",
