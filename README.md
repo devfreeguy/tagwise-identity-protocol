@@ -7,6 +7,7 @@ Monorepo for the TIP project, managed with pnpm workspaces and Turborepo.
 ```
 apps/
     api/            HTTP API service
+    docs/           Documentation pages
     indexer/        Chain/data indexer service
     web/            Web frontend
 packages/
