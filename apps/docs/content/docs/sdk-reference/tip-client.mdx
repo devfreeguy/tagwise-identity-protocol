@@ -206,12 +206,18 @@ client.disconnect();
 
 Builds an unsigned `register_tag` Solana transaction.
 
-- **Parameters**: `params: RegisterParams` - `{ tag: string, wallet?: string }`.
+- **Parameters**: `params: RegisterParams` - `{ tag: string, wallet?: string, feePayer?: string }`.
 - **Returns**: `Promise<UnsignedTransactionResponse>` - `{ transaction: string, pda: string, lastValidBlockHeight: number }`.
 - **Throws**: `NoSessionError`, `TagInvalidError`, `RateLimitedError`.
 
 ```typescript
 const res = await client.register({ tag: "myhandle" });
+```
+
+Pass `feePayer` to have a sponsor cover the account rent and network fee instead of the owner. The `owner` recorded on the tag is always the connected pubkey; `feePayer` only decides who pays. When `feePayer` differs from the owner, the returned transaction requires signatures from both before it can be submitted:
+
+```typescript
+const res = await client.register({ tag: "myhandle", feePayer: sponsorWallet.publicKey.toBase58() });
 ```
 
 ---

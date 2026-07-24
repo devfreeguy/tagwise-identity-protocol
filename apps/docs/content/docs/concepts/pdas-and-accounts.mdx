@@ -59,4 +59,6 @@ pub struct TagAccount {
 
 ## Rent Exemption
 
-When a user registers a tag, their wallet deposits a small amount of SOL (approx. **0.0016 SOL**) to cover the account's rent-exempt storage fee. This SOL remains stored in the tag's PDA account on-chain.
+Registering a tag deposits a small amount of SOL (approx. **0.0016 SOL**) to cover the account's rent-exempt storage fee. This SOL remains stored in the tag's PDA account on-chain.
+
+By default the owner's wallet pays this deposit. The `register_tag` instruction accepts a separate `payer` account, decoupled from `owner`, so a sponsor can cover it on the owner's behalf instead; `owner` is still recorded as the tag's controller regardless of who paid. See [Registering a Tag](/integration-guides/registering-a-tag) for the sponsored flow.

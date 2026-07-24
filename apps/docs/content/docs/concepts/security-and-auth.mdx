@@ -63,3 +63,5 @@ Every tag account maintains two distinct public keys:
   An organization can keep a tag's **Owner** key in a hardware wallet or multisig while setting the **Payment Wallet** to a hot trading account or payment processor. Changing the payment wallet requires a transaction signed by `owner`, but `wallet` itself gains zero administrative privileges.
 </Callout>
 
+A third, transient role exists only at registration time: the **fee payer**. It funds the one-time account rent and network fee, and is never stored on the tag account itself, unlike `owner` and `wallet`. It defaults to the owner (self-paid), or can be a separate sponsor; either way, sponsoring a registration grants no ownership or payment rights. See [Registering a Tag](/integration-guides/registering-a-tag) for the sponsored flow.
+

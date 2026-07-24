@@ -13,6 +13,11 @@ Registering a tag on TIP creates a permanent Program Derived Address (PDA) on th
 1. Authenticate (SIWS) ──> 2. Call register({ tag }) ──> 3. Wallet Signs & Broadcasts
 ```
 
+Registration can be **self-paid** or **sponsored**:
+
+- **Self-paid** (default): the connected owner's wallet pays the account rent and network fee. Only the owner needs to sign.
+- **Sponsored**: pass `feePayer` to have a separate sponsor wallet cover rent and fees instead, so a user with no SOL can still claim a tag. Because Solana's fee payer is baked into the signed message, this must be decided when the transaction is built, so a sponsored transaction needs signatures from **both** the owner and the sponsor before it can be submitted.
+
 ### Complete Code Example
 
 ```typescript
@@ -50,10 +55,32 @@ async function registerUserTag(client: TipClient, walletAdapter: any, desiredTag
 
 ---
 
+## Sponsored Registration
+
+```typescript
+// sponsorWallet covers rent and fees; the connected wallet is still
+// recorded as the tag's owner.
+const unsignedRes = await client.register({
+  tag: desiredTag,
+  feePayer: sponsorWallet.publicKey.toBase58(),
+});
+
+// Both wallets must sign the same unsigned transaction bytes, in either
+// order, before it can be submitted.
+const partiallySignedByOwner = await ownerWallet.signTransaction(unsignedRes.transaction);
+const fullySigned = await sponsorWallet.signTransaction(partiallySignedByOwner);
+```
+
+<Callout type="info" title="Ownership Is Unaffected">
+  `feePayer` only decides who pays. The `owner` recorded on the tag is always the authenticated wallet from the SIWS session, never the sponsor.
+</Callout>
+
+---
+
 ## Important Constraints & Errors
 
 <Callout type="warn" title="Rent Exemption Fee">
-  The wallet executing the transaction must hold a minimum SOL balance (approx **0.002 SOL**) to pay for transaction fees and the PDA account's rent-exempt deposit. If the wallet balance is insufficient, the transaction will fail.
+  Whichever wallet pays (the owner by default, or `feePayer` when sponsored) must hold a minimum SOL balance (approx **0.002 SOL**) to cover the network fee and the PDA account's rent-exempt deposit. If that wallet's balance is insufficient, the API responds with a 402 before any transaction is built.
 </Callout>
 
 

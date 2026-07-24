@@ -112,8 +112,9 @@ type SearchResultItem = {
 
 ```typescript
 type RegisterParams = {
-  tag: string;      // Tag handle to register (e.g. "alice")
-  wallet?: string;  // Optional payment destination wallet pubkey (defaults to owner)
+  tag: string;       // Tag handle to register (e.g. "alice")
+  wallet?: string;   // Optional payment destination wallet pubkey (defaults to owner)
+  feePayer?: string; // Optional sponsor pubkey to pay rent and fees (defaults to owner, self-paid)
 };
 ```
 
