@@ -22,4 +22,3 @@ export function baseOptions(): BaseLayoutProps {
     githubUrl: "https://github.com/devfreeguy/tagwise-identity-protocol",
   };
 }
-
