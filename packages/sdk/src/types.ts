@@ -72,6 +72,14 @@ export type RegisterParams = Readonly<{
   tag: string;
   /** Base58 wallet address to receive payments. Defaults to the connected owner pubkey if omitted. */
   wallet?: string;
+  /**
+   * Base58 address of a sponsor who pays the account rent and network fee
+   * on the owner's behalf. Defaults to the connected owner pubkey (self-paid)
+   * if omitted. When supplied and different from the owner, the resulting
+   * transaction requires signatures from BOTH the owner and feePayer before
+   * it can be submitted.
+   */
+  feePayer?: string;
 }>;
 
 /**

@@ -112,6 +112,37 @@ This is optional and separate from `register()`/`updateWallet()` on
 purpose: the default is always to hand back the unsigned transaction so
 your wallet adapter stays in control.
 
+## Sponsored registration (a sponsor pays rent and fees)
+
+By default, the connected owner pays their own account rent and the
+network fee. Pass `feePayer` to have a sponsor cover both instead, for
+example so a new user with no SOL can still claim a tag:
+
+```ts
+const { transaction, pda, lastValidBlockHeight } = await tip.register({
+  tag: "daniel",
+  feePayer: sponsorWallet.publicKey.toBase58(),
+});
+```
+
+The `owner` recorded on the tag is always the connected, authenticated
+pubkey; `feePayer` never changes ownership, only who pays. Because Solana's
+fee payer is part of the signed message, it must be set when the
+transaction is built, so the resulting transaction requires **two
+signatures** before it can be submitted: one from the owner's wallet, one
+from the sponsor's. Collect both, in either order, before sending it:
+
+```ts
+// Both wallets sign the same unsigned transaction bytes.
+const partiallySignedByOwner = await ownerWallet.signTransaction(unsignedTx);
+const fullySigned = await sponsorWallet.signTransaction(partiallySignedByOwner);
+
+const signature = await connection.sendRawTransaction(fullySigned.serialize());
+```
+
+If `feePayer` is omitted, or set to the same pubkey as the owner, only the
+owner's signature is required, exactly as in a self-paid registration.
+
 ## Session handling
 
 `connect()` stores the session token in memory only. This SDK never
@@ -217,7 +248,7 @@ normalizeTag("@Daniel"); // { ok: true, tag: "daniel" }
 - `token` / `connectedPubkey`: read the current in-memory session.
 - `setSession(token, pubkey)`: restore a session you persisted yourself.
 - `disconnect()`: clear the in-memory session.
-- `register({ tag, wallet? })`: unsigned register_tag transaction. Requires a connected session.
+- `register({ tag, wallet?, feePayer? })`: unsigned register_tag transaction. Requires a connected session. Pass `feePayer` for a sponsor to cover rent and fees; the resulting transaction then needs signatures from both the owner and the sponsor.
 - `updateWallet(tag, newWallet)`: unsigned update_wallet transaction. Requires a connected session.
 - `updateProfile(tag, fields)`: off-chain profile update. Requires a connected session.
 - `signAndSendTransaction(transaction, signer)`: optional convenience, requires `rpcUrl` and a signer with `signTransaction`.

@@ -47,6 +47,30 @@ describe("TipClient writes", () => {
     expect(headers.authorization).toBe(`Bearer ${TOKEN}`);
   });
 
+  it("register() with feePayer includes it in the request body", async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse({ transaction: "tx", pda: "pda", lastValidBlockHeight: "1" }),
+    );
+    client.setSession(TOKEN, OWNER);
+
+    await client.register({ tag: "freshtag", feePayer: "SponsorPubkey1111111111111111111111111111" });
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(init.body).toBe(JSON.stringify({ tag: "freshtag", feePayer: "SponsorPubkey1111111111111111111111111111" }));
+  });
+
+  it("register() without feePayer omits it from the request body", async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse({ transaction: "tx", pda: "pda", lastValidBlockHeight: "1" }),
+    );
+    client.setSession(TOKEN, OWNER);
+
+    await client.register({ tag: "freshtag" });
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(init.body).toBe(JSON.stringify({ tag: "freshtag" }));
+  });
+
   it("updateWallet() posts to /v1/identity/:tag/wallet with the bearer token", async () => {
     fetchMock.mockResolvedValue(jsonResponse({ transaction: "tx", pda: "pda", lastValidBlockHeight: "1" }));
     client.setSession(TOKEN, OWNER);

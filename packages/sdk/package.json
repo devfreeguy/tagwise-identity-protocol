@@ -1,6 +1,6 @@
 {
   "name": "@tagwise/tip-sdk",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Client SDK for the TIP (tagwise identity protocol) API and Solana program",
   "type": "module",
   "license": "MIT",

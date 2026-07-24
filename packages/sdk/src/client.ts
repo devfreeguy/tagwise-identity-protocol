@@ -250,15 +250,17 @@ export class TipClient {
   async register(params: RegisterParams): Promise<UnsignedTransactionResponse> {
     const token = this.requireSession();
     const normalized = normalizeTagOrThrow(params.tag);
+    const body: { tag: string; wallet?: string; feePayer?: string } = { tag: normalized };
+    if (params.wallet) {
+      body.wallet = params.wallet;
+    }
+    if (params.feePayer) {
+      body.feePayer = params.feePayer;
+    }
     return request<UnsignedTransactionResponse>({
       baseUrl: this.baseUrl,
       fetchImpl: this.fetchImpl,
-      request: {
-        method: "POST",
-        path: "/v1/register",
-        body: params.wallet ? { tag: normalized, wallet: params.wallet } : { tag: normalized },
-        token,
-      },
+      request: { method: "POST", path: "/v1/register", body, token },
     });
   }
 
