@@ -3,7 +3,7 @@
  * Update these constants when a new version of the SDK, API, or Docs ships.
  */
 
-const SDK_VERSION = "0.1.2";
+const SDK_VERSION = "0.2.0";
 const API_VERSION = "1.0";
 const DOCS_VERSION = "1.0.0";
 
