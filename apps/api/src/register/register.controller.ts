@@ -28,12 +28,13 @@ export class RegisterController {
   @ApiOperation({
     summary: "Register tag",
     description:
-      "Builds an UNSIGNED register_tag transaction for the caller to sign and submit themselves. The server never signs or submits it, and never writes the mirror; the identities row is created only once the indexer observes the transaction land on-chain. The caller (the authenticated pubkey, always the fee payer and owner, never taken from the request body) pays their own account rent and network fee. If wallet is omitted, it defaults to the caller's own pubkey.",
+      "Builds an UNSIGNED register_tag transaction for the caller to sign and submit themselves. The server never signs or submits it, and never writes the mirror; the identities row is created only once the indexer observes the transaction land on-chain. The OWNER is always the authenticated pubkey, never taken from the request body. The fee payer (who funds account rent and the network fee) defaults to the owner; pass feePayer to have a sponsor cover it instead. If wallet is omitted, it defaults to the owner's own pubkey. When feePayer is present and differs from the owner, the resulting transaction requires signatures from BOTH the owner and feePayer before it can be submitted.",
   })
   @ApiOkResponse({ type: RegisterResponseDto })
   @ApiResponse({
     status: 400,
-    description: "The tag failed canonical-form validation, or wallet is not a valid base58 Solana address.",
+    description:
+      "The tag failed canonical-form validation, or wallet/feePayer is not a valid base58 Solana address.",
     type: TagFormatErrorDto,
     examples: {
       invalidTag: { summary: "Invalid tag", value: { statusCode: 400, message: "invalid tag: TOO_SHORT", reason: "TOO_SHORT" } },
@@ -41,12 +42,17 @@ export class RegisterController {
         summary: "Invalid wallet",
         value: { statusCode: 400, message: "wallet is not a valid base58 Solana address", reason: "INVALID_WALLET" },
       },
+      invalidFeePayer: {
+        summary: "Invalid feePayer",
+        value: { statusCode: 400, message: "feePayer is not a valid base58 Solana address", reason: "INVALID_FEE_PAYER" },
+      },
     },
   })
   @ApiResponse({ status: 401, description: "Missing or invalid bearer token.", type: ErrorResponseDto })
   @ApiResponse({
     status: 402,
-    description: "The fee payer cannot cover rent and fees for this registration.",
+    description:
+      "The fee payer (the sponsor if feePayer was supplied, otherwise the owner) cannot cover rent and fees for this registration.",
     type: InsufficientBalanceResponseDto,
   })
   @ApiResponse({
@@ -61,6 +67,6 @@ export class RegisterController {
   })
   @ApiResponse({ status: 429, description: "Too many registration attempts; rate-limited per pubkey and IP." })
   register(@Body() body: RegisterRequestDto, @AuthPubkey() ownerPubkey: string): Promise<RegisterResponseDto> {
-    return this.registerService.register({ rawTag: body.tag, wallet: body.wallet, ownerPubkey });
+    return this.registerService.register({ rawTag: body.tag, wallet: body.wallet, feePayer: body.feePayer, ownerPubkey });
   }
 }

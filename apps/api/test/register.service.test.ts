@@ -1,4 +1,5 @@
-import { BadRequestException, ConflictException, ForbiddenException } from "@nestjs/common";
+import { BadRequestException, ConflictException, ForbiddenException, ValidationPipe } from "@nestjs/common";
+import type { ArgumentMetadata } from "@nestjs/common";
 import { address as toAddress, getBase64Encoder, getTransactionDecoder } from "@solana/kit";
 import { deriveTagPda } from "@tip/core";
 import type { PrismaClient } from "@tip/db";
@@ -6,12 +7,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ConfigService } from "../src/config/config.service.js";
 import { InsufficientBalanceException } from "../src/register/insufficient-balance.exception.js";
+import { RegisterRequestDto } from "../src/register/dto/register-request.dto.js";
 import { RegisterService } from "../src/register/register.service.js";
 import { generateTestKeypair } from "./helpers/keypair.js";
 
 const PROGRAM_ID = "4vcgrBuzoWw3kBanVTtx7Pi1v9WyTJBJQsFAQMqjJZjx";
 const OWNER = generateTestKeypair().pubkeyBase58;
 const OTHER_WALLET = generateTestKeypair().pubkeyBase58;
+const FEE_PAYER = generateTestKeypair().pubkeyBase58;
 
 function makeFakeDb(existingRow: unknown = null) {
   return {
@@ -59,7 +62,7 @@ describe("RegisterService", () => {
     const service = new RegisterService(makeFakeDb(), makeFakeRpc() as never, config);
 
     await expect(
-      service.register({ rawTag: "ab", wallet: undefined, ownerPubkey: OWNER }),
+      service.register({ rawTag: "ab", wallet: undefined, feePayer: undefined, ownerPubkey: OWNER }),
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 
@@ -67,7 +70,7 @@ describe("RegisterService", () => {
     const service = new RegisterService(makeFakeDb({ status: "active" }), makeFakeRpc() as never, config);
 
     await expect(
-      service.register({ rawTag: "daniel", wallet: undefined, ownerPubkey: OWNER }),
+      service.register({ rawTag: "daniel", wallet: undefined, feePayer: undefined, ownerPubkey: OWNER }),
     ).rejects.toBeInstanceOf(ConflictException);
   });
 
@@ -75,7 +78,7 @@ describe("RegisterService", () => {
     const service = new RegisterService(makeFakeDb(), makeFakeRpc() as never, config);
 
     await expect(
-      service.register({ rawTag: "admin", wallet: undefined, ownerPubkey: OWNER }),
+      service.register({ rawTag: "admin", wallet: undefined, feePayer: undefined, ownerPubkey: OWNER }),
     ).rejects.toBeInstanceOf(ForbiddenException);
   });
 
@@ -83,7 +86,7 @@ describe("RegisterService", () => {
     const service = new RegisterService(makeFakeDb(), makeFakeRpc() as never, config);
 
     await expect(
-      service.register({ rawTag: "fuck", wallet: undefined, ownerPubkey: OWNER }),
+      service.register({ rawTag: "fuck", wallet: undefined, feePayer: undefined, ownerPubkey: OWNER }),
     ).rejects.toBeInstanceOf(ForbiddenException);
   });
 
@@ -91,14 +94,14 @@ describe("RegisterService", () => {
     const service = new RegisterService(makeFakeDb(), makeFakeRpc() as never, config);
 
     await expect(
-      service.register({ rawTag: "freshtag", wallet: "not-a-valid-address", ownerPubkey: OWNER }),
+      service.register({ rawTag: "freshtag", wallet: "not-a-valid-address", feePayer: undefined, ownerPubkey: OWNER }),
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 
   it("uses the JWT pubkey as owner and fee payer, and the transaction is unsigned", async () => {
     const service = new RegisterService(makeFakeDb(), makeFakeRpc() as never, config);
 
-    const result = await service.register({ rawTag: "freshtag", wallet: undefined, ownerPubkey: OWNER });
+    const result = await service.register({ rawTag: "freshtag", wallet: undefined, feePayer: undefined, ownerPubkey: OWNER });
 
     const wireBytes = getBase64Encoder().encode(result.transaction);
     const decoded = getTransactionDecoder().decode(wireBytes);
@@ -114,7 +117,7 @@ describe("RegisterService", () => {
     const service = new RegisterService(makeFakeDb(), rpc as never, config);
 
     try {
-      await service.register({ rawTag: "freshtag", wallet: undefined, ownerPubkey: OWNER });
+      await service.register({ rawTag: "freshtag", wallet: undefined, feePayer: undefined, ownerPubkey: OWNER });
       throw new Error("expected register to throw InsufficientBalanceException");
     } catch (error) {
       expect(error).toBeInstanceOf(InsufficientBalanceException);
@@ -132,7 +135,7 @@ describe("RegisterService", () => {
   it("happy path: returns a base64 unsigned transaction with the correct derived PDA", async () => {
     const service = new RegisterService(makeFakeDb(), makeFakeRpc() as never, config);
 
-    const result = await service.register({ rawTag: "freshtag", wallet: undefined, ownerPubkey: OWNER });
+    const result = await service.register({ rawTag: "freshtag", wallet: undefined, feePayer: undefined, ownerPubkey: OWNER });
 
     const [expectedPda] = await deriveTagPda("freshtag" as never, PROGRAM_ID);
     expect(result.pda).toBe(expectedPda);
@@ -147,11 +150,13 @@ describe("RegisterService", () => {
     const withDifferentWallet = await service.register({
       rawTag: "freshtag",
       wallet: OTHER_WALLET,
+      feePayer: undefined,
       ownerPubkey: OWNER,
     });
     const withDefaultWallet = await service.register({
       rawTag: "freshtag2",
       wallet: undefined,
+      feePayer: undefined,
       ownerPubkey: OWNER,
     });
 
@@ -168,5 +173,65 @@ describe("RegisterService", () => {
     ).messageBytes.length;
 
     expect(withDifferentWalletBytes).toBeGreaterThan(withDefaultWalletBytes);
+  });
+
+  it("register with feePayer sets it as the fee payer while owner remains the authenticated pubkey", async () => {
+    const service = new RegisterService(makeFakeDb(), makeFakeRpc() as never, config);
+
+    const result = await service.register({
+      rawTag: "sponsoredtag",
+      wallet: undefined,
+      feePayer: FEE_PAYER,
+      ownerPubkey: OWNER,
+    });
+
+    const decoded = getTransactionDecoder().decode(getBase64Encoder().encode(result.transaction));
+    const signerAddresses = Object.keys(decoded.signatures);
+
+    // The fee payer is always the first required signer in a compiled Solana message.
+    expect(signerAddresses[0]).toBe(FEE_PAYER);
+    expect(new Set(signerAddresses)).toEqual(new Set([FEE_PAYER, OWNER]));
+    expect(Object.values(decoded.signatures).every((signature) => signature === null)).toBe(true);
+  });
+
+  it("rejects an invalid feePayer address with 400", async () => {
+    const service = new RegisterService(makeFakeDb(), makeFakeRpc() as never, config);
+
+    await expect(
+      service.register({
+        rawTag: "freshtag3",
+        wallet: undefined,
+        feePayer: "not-a-valid-address",
+        ownerPubkey: OWNER,
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it("reads the fee payer's balance for the 402 check when feePayer is present", async () => {
+    const rpc = makeFakeRpc({ balance: 10_000_000n });
+    const service = new RegisterService(makeFakeDb(), rpc as never, config);
+
+    await service.register({ rawTag: "freshtag4", wallet: undefined, feePayer: FEE_PAYER, ownerPubkey: OWNER });
+
+    expect(rpc.getBalance).toHaveBeenCalledWith(toAddress(FEE_PAYER), { commitment: "confirmed" });
+  });
+
+  it("reads the owner's balance for the 402 check when feePayer is absent", async () => {
+    const rpc = makeFakeRpc({ balance: 10_000_000n });
+    const service = new RegisterService(makeFakeDb(), rpc as never, config);
+
+    await service.register({ rawTag: "freshtag5", wallet: undefined, feePayer: undefined, ownerPubkey: OWNER });
+
+    expect(rpc.getBalance).toHaveBeenCalledWith(toAddress(OWNER), { commitment: "confirmed" });
+  });
+
+  it("rejects an owner field in the request body: owner always comes from the JWT, never the body", async () => {
+    // Mirrors the exact global ValidationPipe config from main.ts.
+    const pipe = new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true });
+    const metadata: ArgumentMetadata = { type: "body", metatype: RegisterRequestDto, data: "" };
+
+    await expect(
+      pipe.transform({ tag: "daniel", owner: OTHER_WALLET }, metadata),
+    ).rejects.toThrow();
   });
 });

@@ -23,10 +23,12 @@ export type BuiltRegisterTransaction = Readonly<{
 }>;
 
 /**
- * Builds the unsigned transaction to register a tag. The fee payer is the
- * authenticated pubkey (the owner), who signs and submits it themselves.
- * The server never signs and never holds a keypair; this only compiles the
- * transaction bytes.
+ * Builds the unsigned transaction to register a tag. The fee payer is
+ * whichever pubkey funds rent and network fees for this registration:
+ * the authenticated owner for a self-paid registration, or a distinct
+ * sponsor for one it is paying on the owner's behalf. The server never
+ * signs and never holds a keypair; this only compiles the transaction
+ * bytes.
  *
  * The deployed register_tag instruction has no wallet parameter at all: it
  * unconditionally sets the on-chain wallet field to the owner (see
@@ -37,26 +39,33 @@ export type BuiltRegisterTransaction = Readonly<{
  * land atomically: the tag is registered and its wallet corrected in one
  * signature, one submission.
  *
- * Account order for register_tag matches the IDL exactly: tag_account (the
- * PDA, writable), owner (writable signer, the fee payer), system_program.
- * Account order for update_wallet: tag_account (writable), owner (signer).
+ * Account order for register_tag matches the on-chain accounts struct
+ * exactly: tag_account (the PDA, writable), owner (signer, recorded as the
+ * tag's owner, never debited), payer (writable signer, funds rent and
+ * fees), system_program. When payerPubkey equals ownerPubkey, one signature
+ * satisfies both accounts; when they differ, both must sign, and payer is
+ * also the transaction's fee payer. Account order for update_wallet:
+ * tag_account (writable), owner (signer).
  */
 export async function buildRegisterTagTransaction(params: {
   programId: string;
   tag: NormalizedTag;
   ownerPubkey: string;
+  payerPubkey: string;
   walletAddress: string;
   blockhash: Readonly<{ blockhash: Blockhash; lastValidBlockHeight: bigint }>;
 }): Promise<BuiltRegisterTransaction> {
   const [pda] = await deriveTagPda(params.tag, params.programId);
   const ownerAddress = address(params.ownerPubkey);
+  const payerAddress = address(params.payerPubkey);
   const programAddress = address(params.programId);
 
   const registerInstruction: Instruction = {
     programAddress,
     accounts: [
       { address: pda, role: AccountRole.WRITABLE },
-      { address: ownerAddress, role: AccountRole.WRITABLE_SIGNER },
+      { address: ownerAddress, role: AccountRole.READONLY_SIGNER },
+      { address: payerAddress, role: AccountRole.WRITABLE_SIGNER },
       { address: SYSTEM_PROGRAM_ADDRESS, role: AccountRole.READONLY },
     ],
     data: encodeRegisterTagInstructionData(params.tag),
@@ -80,7 +89,7 @@ export async function buildRegisterTagTransaction(params: {
     instructions,
     setTransactionMessageLifetimeUsingBlockhash(
       params.blockhash,
-      setTransactionMessageFeePayer(ownerAddress, createTransactionMessage({ version: 0 })),
+      setTransactionMessageFeePayer(payerAddress, createTransactionMessage({ version: 0 })),
     ),
   );
 

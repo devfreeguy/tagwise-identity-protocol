@@ -24,12 +24,15 @@ export class RegisterService {
   /**
    * Validates and builds the unsigned register_tag transaction. Never signs,
    * never submits, never writes the identities row (the indexer owns that).
-   * The authenticated pubkey is always the owner and fee payer; it is never
-   * taken from the request body.
+   * The authenticated pubkey is always the owner; it is never taken from the
+   * request body. The fee payer defaults to the owner, or to feePayer when
+   * one is supplied (a sponsor covering rent and fees on the owner's
+   * behalf); either way it is who the 402 balance check reads from.
    */
   async register(params: {
     rawTag: string;
     wallet: string | undefined;
+    feePayer: string | undefined;
     ownerPubkey: string;
   }): Promise<RegisterResponseDto> {
     const normalized = normalizeTag(params.rawTag);
@@ -54,19 +57,28 @@ export class RegisterService {
       throw new BadRequestException({ message: "wallet is not a valid base58 Solana address", reason: "INVALID_WALLET" });
     }
 
+    if (params.feePayer !== undefined && !isValidSolanaAddress(params.feePayer)) {
+      throw new BadRequestException({
+        message: "feePayer is not a valid base58 Solana address",
+        reason: "INVALID_FEE_PAYER",
+      });
+    }
+    const payerPubkey = params.feePayer ?? params.ownerPubkey;
+
     const { value: blockhash } = await this.rpc.getLatestBlockhash({ commitment: "finalized" }).send();
 
     const { transaction, pda } = await buildRegisterTagTransaction({
       programId: this.config.config.tipRegistryProgramId,
       tag,
       ownerPubkey: params.ownerPubkey,
+      payerPubkey,
       walletAddress,
       blockhash,
     });
 
     const balanceCheck = await checkSufficientBalance({
       rpc: this.rpc,
-      feePayer: params.ownerPubkey,
+      feePayer: payerPubkey,
       transaction,
     });
     if (!balanceCheck.sufficient) {
