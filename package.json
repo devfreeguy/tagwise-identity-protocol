@@ -10,6 +10,7 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "build:docs": "turbo run build --filter=@tip/api... && pnpm --filter @tip/api export:openapi && turbo run build --filter=@tip/docs...",
+    "build:landing": "turbo run build --filter=@tip/landing...",
     "lint": "turbo run lint",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
