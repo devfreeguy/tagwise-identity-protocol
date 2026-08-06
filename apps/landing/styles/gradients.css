@@ -1,0 +1,146 @@
+.gradient {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--dark);
+}
+
+.gradient::before,
+.gradient::after {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  pointer-events: none;
+}
+
+.gradient::before {
+  opacity: 0.04;
+  mix-blend-mode: soft-light;
+  background-image: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.4) 1px,
+    transparent 1px
+  );
+  background-size: 4px 4px;
+}
+
+.gradient::after {
+  background: radial-gradient(
+    circle at center,
+    transparent 45%,
+    rgba(0, 0, 0, 0.45)
+  );
+}
+
+/* Cosmic */
+.gradient-cosmic {
+  background:
+    radial-gradient(
+      circle at 20% 25%,
+      color-mix(in srgb, var(--teal) 45%, transparent),
+      transparent 45%
+    ),
+    radial-gradient(
+      circle at 75% 30%,
+      color-mix(in srgb, var(--rose) 40%, transparent),
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 50% 80%,
+      color-mix(in srgb, var(--gold) 35%, transparent),
+      transparent 55%
+    ),
+    var(--dark);
+}
+
+/* Aurora */
+.gradient-aurora {
+  background:
+    radial-gradient(circle at 15% 60%, var(--mint), transparent 40%),
+    radial-gradient(circle at 80% 15%, var(--teal), transparent 45%),
+    radial-gradient(circle at 55% 50%, var(--rose), transparent 55%),
+    var(--dark);
+}
+
+/* Spotlight */
+.gradient-spotlight {
+  background:
+    radial-gradient(
+      circle at center,
+      rgba(255, 255, 255, 0.08),
+      transparent 30%
+    ),
+    radial-gradient(circle at center, var(--coral), transparent 65%),
+    var(--dark);
+}
+
+/* Depth */
+.gradient-depth {
+  background:
+    radial-gradient(
+      circle at 10% 20%,
+      rgba(255, 255, 255, 0.05),
+      transparent 35%
+    ),
+    radial-gradient(circle at 90% 70%, var(--rose), transparent 50%),
+    radial-gradient(circle at 40% 80%, var(--teal), transparent 55%), #0d0d16;
+}
+
+/* Sunset */
+.gradient-sunset {
+  background:
+    radial-gradient(circle at 30% 40%, var(--gold), transparent 45%),
+    radial-gradient(circle at 70% 70%, var(--coral), transparent 45%),
+    radial-gradient(circle at 90% 20%, var(--rose), transparent 50%),
+    var(--dark);
+}
+
+/* Ocean */
+.gradient-ocean {
+  background:
+    radial-gradient(circle at 25% 70%, var(--mint), transparent 45%),
+    radial-gradient(circle at 80% 25%, var(--teal), transparent 50%),
+    rgba(0, 0, 0, 0.85);
+}
+
+/* Bolb */
+.gradient > .blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(140px);
+  opacity: 0.25;
+  animation: drift 24s ease-in-out infinite alternate;
+}
+
+.blob.one {
+  width: 40rem;
+  height: 40rem;
+  background: var(--rose);
+  top: -10rem;
+  left: -8rem;
+}
+
+.blob.two {
+  width: 35rem;
+  height: 35rem;
+  background: var(--teal);
+  right: -8rem;
+  top: 10rem;
+}
+
+.blob.three {
+  width: 28rem;
+  height: 28rem;
+  background: var(--gold);
+  bottom: -10rem;
+  left: 35%;
+}
+
+@keyframes drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(40px, -30px, 0) scale(1.08);
+  }
+}

@@ -1,0 +1,43 @@
+@keyframes float {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-6%) rotate(-2deg);
+  }
+  75% {
+    transform: translateY(6%) rotate(2deg);
+  }
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+}
+
+.animate-float {
+  animation-name: float;
+  animation-duration: 6s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+@keyframes sway {
+  0% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-2.5%);
+  }
+  75% {
+    transform: translateX(2.5%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.animate-sway {
+  animation-name: sway;
+  animation-duration: 14s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}

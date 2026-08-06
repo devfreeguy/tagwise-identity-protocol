@@ -1,0 +1,96 @@
+"use client";
+
+import React from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { IconArrowUpRight } from "@tabler/icons-react";
+import { type NavGroup, SOCIAL_BUTTONS } from "./nav-data";
+
+interface NavPopoverProps {
+  group: NavGroup | null;
+  onClose: () => void;
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
+}
+
+export function NavPopover({
+  group,
+  onClose,
+  onMouseEnter,
+  onMouseLeave,
+}: NavPopoverProps) {
+  return (
+    <AnimatePresence>
+      {group && (
+        <motion.div
+          initial={{ opacity: 0, y: 10, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 8, scale: 0.96 }}
+          transition={{ duration: 0.18, ease: "easeOut" }}
+          className="hidden md:block absolute top-full left-1/2 -translate-x-1/2 mt-3 w-max min-w-110 max-w-135 bg-[#0c0d12]/95 dark:bg-[#0c0d12]/95 backdrop-blur-2xl border border-white/10 rounded-3xl p-5 shadow-2xl shadow-black/80 z-50 text-left"
+          onMouseEnter={onMouseEnter}
+          onMouseLeave={onMouseLeave}
+        >
+          <div className="flex items-stretch justify-between gap-6">
+            {/* Main Nav Items List */}
+            <div className="flex-1 space-y-2">
+              {group.items.map((item) => {
+                const IconComponent = item.icon;
+                return (
+                  <a
+                    key={item.title}
+                    href={item.href}
+                    target={item.external ? "_blank" : undefined}
+                    rel={item.external ? "noopener noreferrer" : undefined}
+                    onClick={onClose}
+                    className="flex items-start gap-3.5 p-2.5 rounded-2xl hover:bg-white/5 transition-all group/item"
+                  >
+                    <div
+                      className={`w-11 h-11 rounded-full bg-linear-to-br ${item.color} flex items-center justify-center text-white shrink-0 shadow-md group-hover/item:scale-105 transition-transform`}
+                    >
+                      <IconComponent size={20} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 font-semibold text-white/95 text-sm group-hover/item:text-[#B37BFF] transition-colors">
+                        <span>{item.title}</span>
+                        {item.external && (
+                          <IconArrowUpRight
+                            size={14}
+                            className="opacity-50 group-hover/item:opacity-100 transition-opacity"
+                          />
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground/80 mt-0.5 leading-snug line-clamp-1">
+                        {item.description}
+                      </p>
+                    </div>
+                  </a>
+                );
+              })}
+            </div>
+
+            {/* Right-side Social Icons Column */}
+            {group.hasSocialColumn && (
+              <div className="flex flex-col justify-center gap-2.5 pl-4 border-l border-white/10 shrink-0">
+                {SOCIAL_BUTTONS.map((social) => {
+                  const SocialIcon = social.icon;
+                  return (
+                    <a
+                      key={social.label}
+                      href={social.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={social.label}
+                      className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 flex items-center justify-center text-muted-foreground hover:text-white transition-all hover:scale-110"
+                    >
+                      <SocialIcon size={18} />
+                    </a>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}

@@ -1,0 +1,260 @@
+/*
+|--------------------------------------------------------------------------
+| Ambient Light System
+|--------------------------------------------------------------------------
+|
+| Premium ambient lighting — a soft colored light leak you can apply
+| to any component background.
+|
+| The background color should always remain visible.
+| These gradients behave like soft colored light projected onto the page.
+|
+| Usage:
+|
+| <section class="ambient ambient-spectrum">
+| <section class="ambient ambient-teal ambient-soft">
+| <section class="ambient ambient-focus ambient-strong">
+|
+|--------------------------------------------------------------------------
+*/
+
+.ambient {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.ambient > * {
+  position: relative;
+  z-index: 1;
+}
+
+.ambient::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-repeat: no-repeat;
+}
+
+/* ==========================================================
+   Intensity Utilities
+========================================================== */
+
+.ambient-soft::before {
+  opacity: 0.55;
+}
+
+.ambient-medium::before {
+  opacity: 0.8;
+}
+
+.ambient-strong::before {
+  opacity: 1;
+}
+
+/* ==========================================================
+   Position Helpers
+========================================================== */
+
+.ambient-top::before {
+  background-position: center top;
+}
+
+.ambient-bottom::before {
+  background-position: center bottom;
+}
+
+.ambient-left::before {
+  background-position: left center;
+}
+
+.ambient-right::before {
+  background-position: right center;
+}
+
+.ambient-center::before {
+  background-position: center;
+}
+
+/* ==========================================================
+   Hero Spectrum
+========================================================== */
+
+.ambient-spectrum::before {
+  background:
+    radial-gradient(
+      900px 700px at 12% 18%,
+      rgb(from var(--teal) r g b / 0.20),
+      transparent 65%
+    ),
+    radial-gradient(
+      850px 850px at 88% 20%,
+      rgb(from var(--rose) r g b / 0.18),
+      transparent 68%
+    ),
+    radial-gradient(
+      1000px 800px at 50% 110%,
+      rgb(from var(--gold) r g b / 0.14),
+      transparent 70%
+    ),
+    radial-gradient(
+      650px 650px at 82% 82%,
+      rgb(from var(--mint) r g b / 0.12),
+      transparent 65%
+    );
+}
+
+/* ==========================================================
+   Ocean
+========================================================== */
+
+.ambient-ocean::before {
+  background:
+    radial-gradient(
+      900px 800px at 15% 40%,
+      rgb(from var(--teal) r g b / 0.18),
+      transparent 68%
+    ),
+    radial-gradient(
+      900px 900px at 90% 75%,
+      rgb(from var(--mint) r g b / 0.16),
+      transparent 70%
+    );
+}
+
+/* ==========================================================
+   Teal
+========================================================== */
+
+.ambient-teal::before {
+  background:
+    radial-gradient(
+      1000px 900px at 0% 10%,
+      rgb(from var(--teal) r g b / 0.18),
+      transparent 68%
+    ),
+    radial-gradient(
+      700px 700px at 100% 90%,
+      rgb(from var(--mint) r g b / 0.12),
+      transparent 65%
+    );
+}
+
+/* ==========================================================
+   Sunset
+========================================================== */
+
+.ambient-sunset::before {
+  background:
+    radial-gradient(
+      900px 700px at 15% 15%,
+      rgb(from var(--gold) r g b / 0.18),
+      transparent 68%
+    ),
+    radial-gradient(
+      900px 900px at 90% 90%,
+      rgb(from var(--coral) r g b / 0.16),
+      transparent 70%
+    );
+}
+
+/* ==========================================================
+   Rose
+========================================================== */
+
+.ambient-rose::before {
+  background: radial-gradient(
+    1000px 900px at 50% 50%,
+    rgb(from var(--rose) r g b / 0.16),
+    transparent 70%
+  );
+}
+
+/* ==========================================================
+   Focus (CTA)
+========================================================== */
+
+.ambient-focus::before {
+  background:
+    radial-gradient(
+      850px 850px at 50% 0%,
+      rgb(from var(--teal) r g b / 0.16),
+      transparent 70%
+    ),
+    radial-gradient(
+      700px 700px at 50% 100%,
+      rgb(from var(--gold) r g b / 0.12),
+      transparent 72%
+    );
+}
+
+/* ==========================================================
+   Editorial
+========================================================== */
+
+.ambient-editorial::before {
+  background:
+    radial-gradient(
+      700px 700px at -10% 25%,
+      rgb(from var(--mint) r g b / 0.14),
+      transparent 68%
+    ),
+    radial-gradient(
+      900px 700px at 110% 70%,
+      rgb(from var(--rose) r g b / 0.14),
+      transparent 70%
+    );
+}
+
+/* ==========================================================
+   Premium
+========================================================== */
+
+.ambient-premium::before {
+  background:
+    radial-gradient(
+      1100px 900px at 50% -10%,
+      rgb(from var(--gold) r g b / 0.14),
+      transparent 72%
+    ),
+    radial-gradient(
+      900px 700px at 0% 100%,
+      rgb(from var(--teal) r g b / 0.12),
+      transparent 68%
+    ),
+    radial-gradient(
+      900px 700px at 100% 100%,
+      rgb(from var(--rose) r g b / 0.12),
+      transparent 70%
+    );
+}
+
+/* ==========================================================
+   Optional Grain
+========================================================== */
+
+.ambient-grain::after {
+  content: "";
+
+  position: absolute;
+
+  inset: 0;
+
+  pointer-events: none;
+
+  z-index: 1;
+
+  opacity: 0.025;
+
+  background-image: radial-gradient(
+    circle,
+    rgba(0, 0, 0, 0.25) 1px,
+    transparent 1px
+  );
+
+  background-size: 5px 5px;
+
+  mix-blend-mode: multiply;
+}

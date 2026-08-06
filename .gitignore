@@ -22,3 +22,5 @@ programs/**/target/
 # editor / os
 .DS_Store
 .vscode
+
+.agents

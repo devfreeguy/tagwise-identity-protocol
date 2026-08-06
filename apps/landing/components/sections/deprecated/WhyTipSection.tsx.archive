@@ -1,0 +1,120 @@
+"use client";
+
+import { Card, Chip } from "@heroui/react";
+import {
+  IconUserShield,
+  IconWorld,
+  IconWallet,
+  IconCpu,
+  IconCode,
+  IconCoins,
+} from "@tabler/icons-react";
+
+export function WhyTipSection() {
+  const pillars = [
+    {
+      title: "Identity Belongs to Users",
+      icon: IconUserShield,
+      tag: "SOVEREIGNTY",
+      description:
+        "Your @tag is registered to your cryptographic keypair on Solana Mainnet. No centralized corporation can seize, censor, or modify your payment identity without your private key.",
+    },
+    {
+      title: "Open Ecosystem",
+      icon: IconWorld,
+      tag: "INTEROPERABLE",
+      description:
+        "TIP is a public infrastructure standard designed for universal adoption. Any wallet, exchange, merchant, or dApp can integrate tag resolution with zero licensing fees.",
+    },
+    {
+      title: "Wallet Agnostic",
+      icon: IconWallet,
+      tag: "NEUTRAL RAILS",
+      description:
+        "Unlike proprietary username systems locked to a single app, TIP works seamlessly across Phantom, Solflare, Backpack, hardware wallets, and custom custody solutions.",
+    },
+    {
+      title: "Infrastructure First",
+      icon: IconCpu,
+      tag: "FOUNDATIONAL",
+      description:
+        "We are not competing to be another consumer wallet. Tagwise focuses 100% on building robust, high-availability identity resolution infrastructure for builders.",
+    },
+    {
+      title: "Open Source",
+      icon: IconCode,
+      tag: "TRANSPARENT",
+      description:
+        "Every line of our Anchor smart contract, client SDK, API gateway, and indexer is publicly auditable on GitHub under an open-source license.",
+    },
+    {
+      title: "Built for Payments",
+      icon: IconCoins,
+      tag: "COMMERCE OPTIMIZED",
+      description:
+        "Designed specifically for financial transactions. Native support for multi-token routing, merchant invoice metadata, payment links, and instant verification badges.",
+    },
+  ];
+
+  return (
+    <section className="py-24 bg-surface/30 border-y border-border/50 relative">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+        {/* Header */}
+        <div className="text-center max-w-3xl mx-auto space-y-4">
+          <Chip
+            variant="soft"
+            color="accent"
+            size="sm"
+            className="font-mono text-xs uppercase"
+          >
+            Protocol Philosophy
+          </Chip>
+          <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight">
+            Why We Built TIP
+          </h2>
+          <p className="text-muted text-base sm:text-lg">
+            Payment identity should not be owned by a single wallet provider or
+            closed platform. Explore the core philosophical tenets that guide
+            Tagwise Identity Protocol.
+          </p>
+        </div>
+
+        {/* Pillars Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {pillars.map((pillar) => {
+            const Icon = pillar.icon;
+            return (
+              <Card
+                key={pillar.title}
+                className="bg-background border border-border/80 hover:border-[#7928CA]/50 transition-all duration-300 p-8 rounded-3xl flex flex-col justify-between group shadow-lg"
+              >
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="p-3 rounded-2xl bg-[#7928CA]/15 text-[#9F55FF] border border-[#7928CA]/30 group-hover:scale-110 transition-transform">
+                      <Icon size={24} />
+                    </div>
+                    <Chip
+                      size="sm"
+                      variant="soft"
+                      color="accent"
+                      className="font-mono text-[10px]"
+                    >
+                      {pillar.tag}
+                    </Chip>
+                  </div>
+
+                  <h3 className="text-xl font-extrabold text-foreground">
+                    {pillar.title}
+                  </h3>
+                  <p className="text-sm text-muted leading-relaxed">
+                    {pillar.description}
+                  </p>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}

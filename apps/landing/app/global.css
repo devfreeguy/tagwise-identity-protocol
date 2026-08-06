@@ -1,0 +1,63 @@
+@import "tailwindcss";
+@import "@heroui/styles";
+@import "../styles/theme.css";
+@import "../styles/animations.css";
+@import "../styles/gradients.css";
+@import "../styles/ambient-light.css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --breakpoint-xs: 23.4375rem;
+}
+
+@theme inline {
+  --color-gold: var(--gold);
+  --color-teal: var(--teal);
+  --color-coral: var(--coral);
+  --color-rose: var(--rose);
+  --color-mint: var(--mint);
+
+  --color-dark: var(--dark);
+  --color-dark-surface: var(--dark-surface);
+  --color-dark-foreground: var(--dark-foreground);
+  --color-dark-muted-foreground: var(--dark-muted-foreground);
+
+  --color-surface: var(--surface);
+  --color-surface-secondary: var(--surface-secondary);
+  --color-surface-tertiary: var(--surface-tertiary);
+
+  --font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+:root {
+  --gold: #d9951d;
+  --teal: #00908a;
+  --coral: #e36040;
+  --rose: #d63f71;
+  --mint: #00986c;
+
+  --dark: #151524;
+  --dark-surface: #272741;
+  --dark-foreground: #f2f3f9;
+  --dark-muted-foreground: #b5b6c5;
+}
+
+.dark {
+  --gold: #edb345;
+  --teal: #1dbcb5;
+  --coral: #f28058;
+  --rose: #ee6e91;
+  --mint: #47c496;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
