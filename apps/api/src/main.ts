@@ -24,16 +24,12 @@ async function bootstrap(): Promise<void> {
 
   const config = app.get(ConfigService);
 
-  // Enable CORS so browser clients (e.g. the docs API playground) can reach
-  // the API. The allowed origin list is driven by the ALLOWED_ORIGINS env var
-  // (comma-separated). If the value is the single string "*", all origins are
-  // permitted, which is safe for public read endpoints and convenient in dev.
-  const { allowedOrigins } = config.config;
+  // Enable CORS for all origins – this is a public API meant to be consumed
+  // from any client (browser apps, docs playground, third-party integrations).
   app.enableCors({
-    origin: allowedOrigins.length === 1 && allowedOrigins[0] === "*" ? "*" : allowedOrigins,
+    origin: "*",
     methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: allowedOrigins[0] !== "*",
   });
 
   const document = SwaggerModule.createDocument(app, createApiDocumentConfig(), apiDocumentOptions);
