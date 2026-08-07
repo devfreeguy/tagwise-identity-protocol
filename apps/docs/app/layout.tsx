@@ -17,15 +17,20 @@ export const metadata: Metadata = {
     template: "%s | Tagwise Docs",
     default: "Tagwise Docs",
   },
-  description: "Official documentation for Tagwise Identity Protocol (TIP): public identity resolution for @tag payments on Solana.",
+  description:
+    "Official documentation for Tagwise Identity Protocol (TIP): public identity resolution for @tag payments on Solana.",
   icons: {
-    icon: "/logo.jpg",
+    icon: "/app-logo.png",
   },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${figtree.variable} ${GeistMono.variable}`} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${figtree.variable} ${GeistMono.variable}`}
+      suppressHydrationWarning
+    >
       <body className="flex min-h-screen flex-col">
         <RootProvider>{children}</RootProvider>
       </body>

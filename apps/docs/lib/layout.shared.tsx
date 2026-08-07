@@ -11,7 +11,7 @@ export function baseOptions(): BaseLayoutProps {
     nav: {
       title: (
         <span className="flex items-center gap-2">
-          <Image src="/logo.jpg" alt="Tagwise" width={24} height={24} className="rounded-md" />
+          <Image src="/app-logo.png" alt="Tagwise" width={24} height={24} className="rounded-md" />
           <span className="font-semibold">Tagwise</span>
           <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500 border border-amber-500/20">
             Devnet
