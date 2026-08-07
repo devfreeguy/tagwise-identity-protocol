@@ -1,0 +1,58 @@
+# Tagwise Identity Protocol — Documentation
+
+> Comprehensive developer documentation for the Tagwise Identity Protocol (TIP), the identity layer for Solana payments.
+
+This is the documentation site for the Tagwise Identity Protocol. For the main website, see [tagwise.me](https://tagwise.me) or its [llms.txt](https://tagwise.me/llms.txt).
+
+## Getting Started
+
+- [Documentation Home](https://docs.tagwise.me/docs): Introduction and overview
+- [Quickstart](https://docs.tagwise.me/docs/quickstart): Install the SDK and resolve your first @tag in minutes
+
+## Concepts
+
+- [Architecture](https://docs.tagwise.me/docs/concepts/architecture): System architecture — on-chain program, API layer, SDK
+- [Source of Truth](https://docs.tagwise.me/docs/concepts/source-of-truth): Solana blockchain as the authoritative identity store
+- [PDAs and Accounts](https://docs.tagwise.me/docs/concepts/pdas-and-accounts): Program Derived Addresses for identity data
+- [Tag Rules and Moderation](https://docs.tagwise.me/docs/concepts/tag-rules-and-moderation): Tag validation and moderation policies
+- [Security and Auth](https://docs.tagwise.me/docs/concepts/security-and-auth): Wallet-based challenge–response authentication
+
+## Integration Guides
+
+- [Registering a Tag](https://docs.tagwise.me/docs/integration-guides/registering-a-tag): Register new @tags
+- [Managing Profiles and Wallets](https://docs.tagwise.me/docs/integration-guides/managing-profiles-and-wallets): Update identity profiles
+- [Wallet Authentication](https://docs.tagwise.me/docs/integration-guides/wallet-authentication): Implement wallet auth
+- [Direct On-Chain Resolution](https://docs.tagwise.me/docs/integration-guides/direct-on-chain-resolution): Resolve tags from Solana directly
+- [Payment Links and QR](https://docs.tagwise.me/docs/integration-guides/payment-links-and-qr): Generate payment links and QR codes
+
+## SDK Reference
+
+The SDK is published as `@tagwise/tip-sdk` on [npm](https://www.npmjs.com/package/@tagwise/tip-sdk).
+
+- [TipClient](https://docs.tagwise.me/docs/sdk-reference/tip-client): Main client class
+- [On-Chain Resolution](https://docs.tagwise.me/docs/sdk-reference/on-chain-resolution): Blockchain resolution functions
+- [Tag Utilities](https://docs.tagwise.me/docs/sdk-reference/tag-utilities): Validation and formatting helpers
+- [Types and Models](https://docs.tagwise.me/docs/sdk-reference/types-and-models): TypeScript types
+- [Errors and Exceptions](https://docs.tagwise.me/docs/sdk-reference/errors-and-exceptions): Error handling
+
+## API Reference
+
+- [Resolve Tag](https://docs.tagwise.me/docs/api-reference/TagsController_resolve): Resolve @tag → wallet address
+- [Get Identity](https://docs.tagwise.me/docs/api-reference/TagsController_identity): Full identity profile
+- [Check Availability](https://docs.tagwise.me/docs/api-reference/TagsController_availability): Tag availability check
+- [Search Tags](https://docs.tagwise.me/docs/api-reference/TagsController_search): Search by query
+- [Generate QR](https://docs.tagwise.me/docs/api-reference/TagsController_qr): QR code generation
+- [Payment Link](https://docs.tagwise.me/docs/api-reference/TagsController_paymentLink): Payment link generation
+- [Update Identity](https://docs.tagwise.me/docs/api-reference/TagsController_updateIdentity): Update profile (auth required)
+- [Update Wallet](https://docs.tagwise.me/docs/api-reference/TagsController_updateWallet): Update wallet (auth required)
+- [Register](https://docs.tagwise.me/docs/api-reference/RegisterController_register): Register a new tag
+- [Auth Challenge](https://docs.tagwise.me/docs/api-reference/AuthController_challenge): Request auth challenge
+- [Auth Verify](https://docs.tagwise.me/docs/api-reference/AuthController_verify): Verify signed challenge
+- [Auth Me](https://docs.tagwise.me/docs/api-reference/AuthController_me): Current authenticated user
+- [Health Check](https://docs.tagwise.me/docs/api-reference/HealthController_check): API health
+
+## External
+
+- [Main Website](https://tagwise.me)
+- [GitHub](https://github.com/devfreeguy/tagwise-identity-protocol)
+- [npm](https://www.npmjs.com/package/@tagwise/tip-sdk)

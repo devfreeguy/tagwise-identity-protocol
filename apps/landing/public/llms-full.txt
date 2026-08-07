@@ -1,0 +1,129 @@
+# Tagwise Identity Protocol (TIP)
+
+> The foundational identity layer for payments on Solana. TIP replaces long wallet addresses with memorable human-readable @tags.
+
+Tagwise Identity Protocol (TIP) is an open-source identity resolution protocol built on the Solana blockchain. It enables wallets, exchanges, merchants, and dApps to resolve human-readable @tags (e.g., @alice) to Solana wallet addresses, making crypto payments as simple as sending to a username.
+
+---
+
+## Overview
+
+TIP solves a fundamental problem in blockchain payments: wallet addresses are long, complex, and error-prone. A Solana wallet address like `7xKX...q9Pf` is not human-friendly. TIP maps memorable @tags to wallet addresses on-chain, creating a universal identity layer that any application can integrate.
+
+### How It Works
+
+1. **Register**: A user registers a unique @tag (e.g., @alice) linked to their Solana wallet
+2. **Resolve**: Any application can resolve @alice → Solana wallet address via the SDK or REST API
+3. **Pay**: Wallets, dApps, and merchants send payments to @alice instead of a raw address
+
+### Architecture
+
+- **On-Chain Program**: A Solana smart contract stores identity records as Program Derived Addresses (PDAs)
+- **API Layer**: A REST API provides HTTP endpoints for tag resolution, search, QR codes, and payment links
+- **TypeScript SDK**: The `@tagwise/tip-sdk` npm package provides a `TipClient` class for programmatic integration
+- **On-Chain Resolution**: The SDK can also resolve tags directly from the Solana blockchain without the API
+
+### Key Concepts
+
+- **Tags**: Human-readable identifiers prefixed with @ (e.g., @alice). Tags are unique, case-insensitive, and follow validation rules (alphanumeric, underscores, 3–32 characters)
+- **Identity Records**: On-chain accounts storing a tag's display name, avatar, bio, and linked wallet address
+- **PDAs (Program Derived Addresses)**: Deterministic addresses derived from the tag string, ensuring each tag maps to exactly one on-chain account
+- **Source of Truth**: The Solana blockchain is the authoritative source; the API is a convenience layer
+- **Wallet Authentication**: Users prove wallet ownership via challenge–response signatures (no passwords)
+
+---
+
+## Pages
+
+### [Home](https://tagwise.me)
+Landing page introducing the Tagwise Identity Protocol. Contains sections explaining the problem of complex wallet addresses, how TIP solves it with @tags, a technical overview of how resolution works, and who the protocol is built for (wallets, exchanges, merchants, dApps).
+
+### [Technology](https://tagwise.me/technology)
+A deep dive into the decentralized architecture, cryptographic identity resolution, and high-performance infrastructure that powers Tagwise. Covers the on-chain program design, PDA derivation, API architecture, and security model.
+
+### [Developers](https://tagwise.me/developers)
+Developer resources for integrating Tagwise into wallets, dApps, and services. Includes SDK installation instructions, code examples, API quickstart, and links to full documentation. The SDK is available as `@tagwise/tip-sdk` on npm.
+
+### [Whitepaper](https://tagwise.me/whitepaper)
+The technical whitepaper detailing the protocol design, motivation, architecture decisions, and implementation specifics of the Tagwise Identity Protocol.
+
+### [Roadmap](https://tagwise.me/roadmap)
+A transparent roadmap from initial concept to a fully decentralized, community-governed identity layer. Includes current milestones, completed phases, and future trajectory.
+
+### [Open Source](https://tagwise.me/open-source)
+Information about the open-source monorepo architecture, how to contribute, and how to join the Tagwise community. The protocol is built by the community, for the community.
+
+### [Brand Assets](https://tagwise.me/brand)
+Official brand guidelines and downloadable assets for the Tagwise Identity Protocol, including logos, colors, and usage rules.
+
+### [Security](https://tagwise.me/security)
+Security information, vulnerability reporting guidelines, and policies for the Tagwise Identity Protocol.
+
+---
+
+## Documentation (docs.tagwise.me)
+
+### [Getting Started](https://docs.tagwise.me/docs)
+Introduction to the Tagwise Identity Protocol documentation. Overview of what TIP is and how to begin integrating it.
+
+### [Quickstart](https://docs.tagwise.me/docs/quickstart)
+Step-by-step guide to get up and running with TIP in minutes. Covers installing the SDK, creating a client, and resolving your first tag.
+
+### Concepts
+
+- [Architecture](https://docs.tagwise.me/docs/concepts/architecture): System architecture overview showing the relationship between the on-chain program, API layer, and SDK
+- [Source of Truth](https://docs.tagwise.me/docs/concepts/source-of-truth): How the Solana blockchain serves as the authoritative data source for all identity records
+- [PDAs and Accounts](https://docs.tagwise.me/docs/concepts/pdas-and-accounts): How Program Derived Addresses are used to store and retrieve identity data on-chain
+- [Tag Rules and Moderation](https://docs.tagwise.me/docs/concepts/tag-rules-and-moderation): Validation rules for tags, reserved names, and moderation policies
+- [Security and Auth](https://docs.tagwise.me/docs/concepts/security-and-auth): Authentication model using Solana wallet signatures and challenge–response flow
+
+### Integration Guides
+
+- [Registering a Tag](https://docs.tagwise.me/docs/integration-guides/registering-a-tag): How to register a new @tag for a user
+- [Managing Profiles and Wallets](https://docs.tagwise.me/docs/integration-guides/managing-profiles-and-wallets): How to update identity profiles and linked wallet addresses
+- [Wallet Authentication](https://docs.tagwise.me/docs/integration-guides/wallet-authentication): Implementing wallet-based authentication using challenge–response
+- [Direct On-Chain Resolution](https://docs.tagwise.me/docs/integration-guides/direct-on-chain-resolution): Resolving tags directly from the Solana blockchain without the API
+- [Payment Links and QR](https://docs.tagwise.me/docs/integration-guides/payment-links-and-qr): Generating payment links and QR codes for @tags
+
+### SDK Reference
+
+- [TipClient](https://docs.tagwise.me/docs/sdk-reference/tip-client): Main client class for interacting with the TIP API
+- [On-Chain Resolution](https://docs.tagwise.me/docs/sdk-reference/on-chain-resolution): Functions for resolving tags directly from Solana
+- [Tag Utilities](https://docs.tagwise.me/docs/sdk-reference/tag-utilities): Helper functions for tag validation and formatting
+- [Types and Models](https://docs.tagwise.me/docs/sdk-reference/types-and-models): TypeScript type definitions and data models
+- [Errors and Exceptions](https://docs.tagwise.me/docs/sdk-reference/errors-and-exceptions): Error types and handling patterns
+
+### API Reference
+
+REST API base URL: `https://api.tagwise.me` (subject to change; see docs for current endpoint)
+
+- [Resolve Tag](https://docs.tagwise.me/docs/api-reference/TagsController_resolve): `GET /v1/tags/:handle/resolve` — Resolve a tag to a wallet address
+- [Get Identity](https://docs.tagwise.me/docs/api-reference/TagsController_identity): `GET /v1/identity/:handle` — Get full identity profile for a tag
+- [Check Availability](https://docs.tagwise.me/docs/api-reference/TagsController_availability): `GET /v1/tags/:handle/availability` — Check if a tag is available
+- [Search Tags](https://docs.tagwise.me/docs/api-reference/TagsController_search): `GET /v1/tags/search` — Search for tags by query string
+- [Generate QR](https://docs.tagwise.me/docs/api-reference/TagsController_qr): `GET /v1/tags/:handle/qr` — Generate a QR code for a tag
+- [Payment Link](https://docs.tagwise.me/docs/api-reference/TagsController_paymentLink): `GET /v1/tags/:handle/payment-link` — Generate a payment link
+- [Update Identity](https://docs.tagwise.me/docs/api-reference/TagsController_updateIdentity): `PATCH /v1/identity/:handle` — Update identity profile (authenticated)
+- [Update Wallet](https://docs.tagwise.me/docs/api-reference/TagsController_updateWallet): `PATCH /v1/tags/:handle/wallet` — Update linked wallet (authenticated)
+- [Register](https://docs.tagwise.me/docs/api-reference/RegisterController_register): `POST /v1/register` — Register a new tag
+- [Auth Challenge](https://docs.tagwise.me/docs/api-reference/AuthController_challenge): `POST /v1/auth/challenge` — Request an authentication challenge
+- [Auth Verify](https://docs.tagwise.me/docs/api-reference/AuthController_verify): `POST /v1/auth/verify` — Verify a signed challenge
+- [Auth Me](https://docs.tagwise.me/docs/api-reference/AuthController_me): `GET /v1/auth/me` — Get current authenticated user
+- [Health Check](https://docs.tagwise.me/docs/api-reference/HealthController_check): `GET /v1/health` — API health check endpoint
+
+---
+
+## External Links
+
+- [GitHub Repository](https://github.com/devfreeguy/tagwise-identity-protocol): Source code, issues, and contributions
+- [npm Package](https://www.npmjs.com/package/@tagwise/tip-sdk): `@tagwise/tip-sdk` — TypeScript SDK for TIP integration
+- [X (Twitter)](https://x.com/tagwiseme): Official X account for updates and announcements
+- [Contact](mailto:hello@tagwise.me): Reach the team via email
+
+---
+
+## Legal
+
+- [Privacy Policy](https://tagwise.me/privacy)
+- [Terms of Service](https://tagwise.me/terms)
+- [Cookie Policy](https://tagwise.me/cookies)
