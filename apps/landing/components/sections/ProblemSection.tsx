@@ -8,34 +8,38 @@ export function ProblemSection() {
   const problems = [
     {
       id: "01",
-      title: "Hexadecimal Strings",
-      desc: "Long, unreadable addresses.",
+      title: "Random Addresses",
+      desc: "Humans weren't meant to remember wallet addresses.",
     },
     {
       id: "02",
-      title: "Copy & Paste",
-      desc: "Manual transfer breaks context.",
+      title: "Constant Verification",
+      desc: "Every payment becomes a manual security check.",
     },
-    { id: "03", title: "Visual Checks", desc: "Verifying first/last 4 chars." },
+    {
+      id: "03",
+      title: "Fear of Mistakes",
+      desc: "One typo can send funds somewhere else forever.",
+    },
     {
       id: "04",
-      title: "Irreversible Anxiety",
-      desc: "Hitting send and hoping.",
+      title: "Broken Payment Flow",
+      desc: "Asking for, copying, and pasting addresses interrupts every transaction.",
     },
   ];
 
   const solutions = [
-    { id: "01", title: "Human @tags", desc: "Memorable Web2-like handles." },
-    { id: "02", title: "Seamless UX", desc: "Integrated checkout flows." },
+    { id: "01", title: "Human @tags", desc: "Pay people, not wallet addresses." },
+    { id: "02", title: "Verified Identity", desc: "Know exactly who you're paying before you send." },
     {
       id: "03",
-      title: "Cryptographic Proof",
-      desc: "Instant on-chain verification.",
+      title: "One-Tap Payments",
+      desc: "No copying, pasting, or manual verification.",
     },
     {
       id: "04",
-      title: "Absolute Confidence",
-      desc: "100% certainty before sending.",
+      title: "Confidence Built In",
+      desc: "Every payment is simple, familiar, and secure.",
     },
   ];
 
@@ -52,7 +56,7 @@ export function ProblemSection() {
           </div>
 
           {/* Right 2x2 Grid */}
-          <div className="grid grid-cols-2 bg-border/80 gap-px">
+          <div className="grid grid-cols-1 sm:grid-cols-2 bg-border/80 gap-px">
             {problems.map((p) => (
               <BentoCard
                 key={p.id}
@@ -67,7 +71,7 @@ export function ProblemSection() {
         {/* THE SOLUTION SECTION */}
         <div className="grid grid-cols-1 lg:grid-cols-2 bg-border/80 border border-border gap-px rounded-2xl overflow-hidden">
           {/* Left 2x2 Grid (Moved to bottom on mobile, left on desktop) */}
-          <div className="grid grid-cols-2 bg-border/80 gap-px order-2 lg:order-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 bg-border/80 gap-px order-2 lg:order-1">
             {solutions.map((s) => (
               <BentoCard
                 key={s.id}

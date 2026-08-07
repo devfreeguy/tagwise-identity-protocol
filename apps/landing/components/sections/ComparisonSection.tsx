@@ -39,70 +39,64 @@ export function ComparisonSection() {
   ];
 
   return (
-    <section className="py-24 relative">
-      <SectionWrapper>
-        
+    <section className="py-20 sm:py-32 relative overflow-hidden">
+      <SectionWrapper className="space-y-12 sm:space-y-16">
         {/* Header */}
-        <div className="mb-12">
-          <p className="text-[11px] font-mono uppercase tracking-widest text-[#8B98C2] mb-4">
+        <div>
+          <p className="text-sm font-semibold text-[#8B98C2] tracking-wide uppercase mb-3">
             Architecture Comparison
           </p>
-          <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-foreground">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight text-foreground leading-none">
             TIP vs. SNS
           </h2>
         </div>
 
-        {/* Bento Grid Comparison */}
-        <div className="flex flex-col border border-border/80 bg-border/80 gap-px w-full shadow-sm rounded-2xl overflow-hidden">
-          {/* Grid Header (Desktop) */}
-          <div className="hidden md:grid grid-cols-3 gap-px bg-border/80">
-            <div className="bg-surface-secondary p-4 sm:p-5 flex items-center">
-              <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground">Dimension</span>
+        {/* Scrollable Table Container */}
+        <div className="overflow-x-auto -mx-4 px-4 sm:-mx-6 sm:px-6 md:mx-0 md:px-0">
+          <div className="min-w-200 grid grid-cols-3 gap-px bg-border/80 border border-border/80 rounded-2xl overflow-hidden">
+            {/* Grid Header */}
+            <div className="bg-surface p-8 flex items-center">
+              <span className="text-xs font-mono uppercase tracking-widest text-[#8B98C2]">Dimension</span>
             </div>
-            <div className="group/head bg-background p-4 sm:p-5 flex items-center gap-2 relative overflow-hidden transition-all duration-300 hover:bg-linear-to-br hover:from-[#7928CA] hover:to-[#9F55FF]">
-              <div className="w-1.5 h-1.5 bg-[#9F55FF] group-hover/head:bg-white transition-colors relative z-10" />
-              <span className="text-sm font-bold text-foreground group-hover/head:text-white transition-colors relative z-10">
+            <div className="bg-background p-8 flex items-center gap-2.5 transition-all duration-300 hover:bg-linear-to-br hover:from-[#7928CA] hover:to-[#9F55FF] group/head">
+              <div className="w-1.5 h-1.5 rounded-full bg-[#9F55FF] group-hover/head:bg-white transition-colors duration-300" />
+              <span className="text-sm font-semibold text-foreground group-hover/head:text-white transition-colors duration-300">
                 Tagwise Protocol (TIP)
               </span>
             </div>
-            <div className="bg-surface-secondary p-4 sm:p-5 flex items-center">
-              <span className="text-sm font-semibold text-muted-foreground">Solana Name Service</span>
+            <div className="bg-surface p-8 flex items-center">
+              <span className="text-sm font-semibold text-muted-foreground">Solana Name Service (SNS)</span>
             </div>
-          </div>
 
-          {/* Grid Rows */}
-          {comparisonData.map((row) => (
-            <div key={row.feature} className="grid grid-cols-1 md:grid-cols-3 gap-px bg-border/80">
-              
-              {/* Feature Name */}
-              <div className="bg-surface-secondary p-4 sm:p-5 flex flex-col justify-center">
-                <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground md:hidden mb-2">Dimension</span>
-                <span className="text-sm font-medium text-foreground">{row.feature}</span>
-              </div>
-              
-              {/* TIP Column */}
-              <div className="group/cell bg-background hover:bg-linear-to-br hover:from-[#7928CA] hover:to-[#9F55FF] p-4 sm:p-5 transition-all duration-300 flex flex-col justify-center relative z-10">
-                <span className="text-[10px] font-mono uppercase tracking-widest text-[#9F55FF] group-hover/cell:text-white/80 transition-colors md:hidden mb-2">Tagwise</span>
-                <div className="flex items-start gap-2">
-                  <IconCheck size={16} className="text-[#8B98C2] group-hover/cell:text-white mt-0.5 shrink-0 transition-colors" />
-                  <span className="text-sm font-medium text-foreground group-hover/cell:text-white transition-colors">{row.tip}</span>
+            {/* Grid Rows */}
+            {comparisonData.map((row) => (
+              <React.Fragment key={row.feature}>
+                {/* Feature Name */}
+                <div className="bg-surface p-8 flex flex-col justify-center">
+                  <span className="text-base font-medium text-foreground">{row.feature}</span>
                 </div>
-              </div>
+                
+                {/* TIP Column */}
+                <div className="bg-background hover:bg-linear-to-br hover:from-[#7928CA] hover:to-[#9F55FF] p-8 transition-all duration-300 flex flex-col justify-center group/cell">
+                  <div className="flex items-start gap-2.5">
+                    <IconCheck size={18} className="text-[#9F55FF] group-hover/cell:text-white mt-1 shrink-0 transition-colors duration-300" />
+                    <span className="text-base font-medium text-foreground group-hover/cell:text-white transition-colors duration-300">{row.tip}</span>
+                  </div>
+                </div>
 
-              {/* SNS Column */}
-              <div className="bg-surface-secondary p-4 sm:p-5 flex flex-col justify-center">
-                <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground md:hidden mb-2">SNS</span>
-                <span className="text-sm text-muted-foreground">{row.sns}</span>
-              </div>
-
-            </div>
-          ))}
+                {/* SNS Column */}
+                <div className="bg-surface p-8 flex flex-col justify-center">
+                  <span className="text-base text-muted-foreground leading-relaxed">{row.sns}</span>
+                </div>
+              </React.Fragment>
+            ))}
+          </div>
         </div>
 
         {/* Footer Note */}
-        <div className="mt-6 flex items-start gap-3 p-4 border border-border/80 bg-surface-secondary text-xs text-muted-foreground max-w-7xl">
-          <span className="text-foreground font-medium shrink-0">Note:</span>
+        <div className="p-8 border border-border/80 bg-surface rounded-2xl text-sm sm:text-base text-muted-foreground max-w-7xl leading-relaxed">
           <p>
+            <span className="text-foreground font-semibold">Note:</span>{" "}
             TIP and SNS serve complementary layers on Solana. SNS handles general Web3 naming and profiles, while TIP is optimized exclusively for instant financial checkout and merchant routing.
           </p>
         </div>

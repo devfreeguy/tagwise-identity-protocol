@@ -9,6 +9,7 @@ import { NavPopover } from "./NavPopover";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "../ui/Button";
+import { useThemeColors } from "@/hooks/useThemeColors";
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -18,6 +19,7 @@ export function Navbar() {
   const navRef = useRef<HTMLDivElement>(null);
   const closeTimeout = useRef<NodeJS.Timeout | null>(null);
   const pathname = usePathname();
+  const { foreground } = useThemeColors();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -125,7 +127,11 @@ export function Navbar() {
             aria-label="Toggle menu"
             className="text-muted-foreground hover:text-foreground"
           >
-            {mobileMenuOpen ? <IconX size={22} /> : <IconMenu2 size={22} />}
+            {mobileMenuOpen ? (
+              <IconX color={foreground} size={22} />
+            ) : (
+              <IconMenu2 color={foreground} size={22} />
+            )}
           </Button>
         </div>
       </div>

@@ -8,19 +8,25 @@ import {
 import { tv, type VariantProps } from "tailwind-variants";
 
 export const buttonStyles = tv({
-  base: "font-mono font-semibold uppercase tracking-widest text-[11px] px-8 py-3.5 h-auto transition-all duration-300 rounded-full",
+  base: "font-mono font-semibold uppercase tracking-widest transition-all duration-300 rounded-full",
   variants: {
     variant: {
-      primary:
-        "bg-foreground text-background hover:bg-foreground/90 border-transparent",
-      secondary:
-        "bg-surface hover:bg-surface-secondary text-foreground border-transparent",
-      tertiary:
-        "border border-border/80 dark:border-white/20 hover:border-foreground/40 bg-surface/40 dark:bg-white/5 hover:bg-surface dark:hover:bg-white/10 text-foreground",
+      primary: "bg-foreground text-background hover:bg-foreground/90 border-transparent",
+      secondary: "bg-surface hover:bg-surface-secondary text-foreground border-transparent",
+      tertiary: "border border-border/80 dark:border-white/20 hover:border-foreground/40 bg-surface/40 dark:bg-white/5 hover:bg-surface dark:hover:bg-white/10 text-foreground",
+    },
+    size: {
+      sm: "px-6 py-2.5 h-auto text-[10px]",
+      md: "px-8 py-3.5 h-auto text-[11px]",
+      lg: "px-10 py-4 h-auto text-[12px]",
+    },
+    isIconOnly: {
+      true: "!px-0 !py-0 aspect-square",
     },
   },
   defaultVariants: {
     variant: "primary",
+    size: "md",
   },
 });
 
@@ -36,11 +42,13 @@ export interface ButtonProps
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, ...props }, ref) => {
+  ({ className, variant, size = "md", isIconOnly, ...props }, ref) => {
     return (
       <HeroUIButton
         ref={ref}
-        className={buttonStyles({ variant, class: className })}
+        size={size as HeroUIButtonProps["size"]}
+        isIconOnly={isIconOnly}
+        className={buttonStyles({ variant, size, isIconOnly, class: className })}
         {...props}
       />
     );

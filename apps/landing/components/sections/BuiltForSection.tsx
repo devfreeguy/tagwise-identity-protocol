@@ -66,9 +66,6 @@ export function BuiltForSection() {
             return (
               <a
                 key={item.title}
-                href={item.href}
-                target="_blank"
-                rel="noopener noreferrer"
                 className="group flex flex-col bg-background/40 hover:bg-linear-to-br hover:from-[#7928CA] hover:to-[#9F55FF] p-8 sm:p-10 lg:p-14 min-h-80 transition-all duration-300 relative overflow-hidden"
               >
                 <div className="flex items-start justify-between">
@@ -89,11 +86,10 @@ export function BuiltForSection() {
                   <p className="text-muted-foreground group-hover:text-white/90 text-sm sm:text-base leading-relaxed transition-colors duration-300 max-w-md">
                     {item.description}
                   </p>
-                  <div className="inline-flex items-center gap-2 text-sm font-semibold text-[#7928CA] group-hover:text-white transition-colors duration-300 pt-2">
-                  </div>
-                  <Button variant="tertiary" size="sm">
-                    {item.linkText}
-                  </Button>
+                  <div className="inline-flex items-center gap-2 text-sm font-semibold text-[#7928CA] group-hover:text-white transition-colors duration-300 pt-2"></div>
+                  <a href={item.href} target="_blank" rel="noopener noreferrer">
+                    <Button variant="tertiary">{item.linkText}</Button>
+                  </a>
                 </div>
               </a>
             );

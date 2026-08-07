@@ -21,7 +21,7 @@ export function FinalCtaSection() {
                 Payment Identity.
               </h2>
 
-              <p className="text-base sm:text-lg text-[#9f9fa4] max-w-2xl leading-relaxed font-normal">
+              <p className="text-base sm:text-lg text-[#b1b1b4] max-w-2xl leading-relaxed font-normal">
                 Stop sending your users hexadecimal strings. Give them
                 memorable, cryptographically verified payment identities in less
                 than 5 minutes of setup.
