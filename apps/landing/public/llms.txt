@@ -1,0 +1,47 @@
+# Tagwise Identity Protocol (TIP)
+
+> The foundational identity layer for payments on Solana. TIP replaces long wallet addresses with memorable human-readable @tags.
+
+Tagwise Identity Protocol (TIP) is an open-source identity resolution protocol built on the Solana blockchain. It enables wallets, exchanges, merchants, and dApps to resolve human-readable @tags (e.g., @alice) to Solana wallet addresses, making crypto payments as simple as sending to a username.
+
+## Key Features
+
+- **Human-Readable Addresses**: Replace complex wallet addresses with memorable @tags
+- **On-Chain Resolution**: Identity data is stored directly on Solana via Program Derived Addresses (PDAs)
+- **Open-Source SDK**: TypeScript/JavaScript SDK available on npm as `@tagwise/tip-sdk`
+- **REST API**: HTTP endpoints for tag resolution, identity lookup, search, QR codes, and payment links
+- **Wallet Authentication**: Challenge–response auth using Solana wallet signatures
+- **Payment Links & QR**: Generate payment links and QR codes for any registered @tag
+
+## Pages
+
+- [Home](https://tagwise.me): Landing page with protocol overview, how it works, and who it's built for
+- [Technology](https://tagwise.me/technology): Deep dive into decentralized architecture, cryptographic identity resolution, and infrastructure
+- [Developers](https://tagwise.me/developers): Resources for integrating Tagwise into wallets, dApps, and services via SDK and REST API
+- [Whitepaper](https://tagwise.me/whitepaper): Technical whitepaper for the Tagwise Identity Protocol
+- [Roadmap](https://tagwise.me/roadmap): Transparent roadmap from initial concept to fully decentralized, community-governed identity layer
+- [Open Source](https://tagwise.me/open-source): Monorepo architecture, contribution guidelines, and community information
+- [Brand Assets](https://tagwise.me/brand): Brand guidelines and downloadable assets
+- [Security](https://tagwise.me/security): Security information, vulnerability reporting guidelines, and policies
+
+## Documentation
+
+- [Docs Home](https://docs.tagwise.me/docs): Getting started with the Tagwise Identity Protocol
+- [Quickstart](https://docs.tagwise.me/docs/quickstart): Get up and running in minutes
+- [Concepts](https://docs.tagwise.me/docs/concepts): Architecture, source of truth, PDAs and accounts, tag rules, security and auth
+- [Integration Guides](https://docs.tagwise.me/docs/integration-guides): Registering tags, managing profiles, wallet auth, on-chain resolution, payment links
+- [SDK Reference](https://docs.tagwise.me/docs/sdk-reference): TipClient, on-chain resolution, tag utilities, types and models, errors
+- [API Reference](https://docs.tagwise.me/docs/api-reference): REST API endpoints for resolve, identity, availability, search, QR, payment links, registration, and auth
+
+## External Links
+
+- [GitHub Repository](https://github.com/devfreeguy/tagwise-identity-protocol)
+- [npm Package](https://www.npmjs.com/package/@tagwise/tip-sdk)
+- [X (Twitter)](https://x.com/tagwiseme)
+
+## Optional
+
+- [LLMs Full](https://tagwise.me/llms-full.txt): Extended version of this file with detailed content
+- [Privacy Policy](https://tagwise.me/privacy)
+- [Terms of Service](https://tagwise.me/terms)
+- [Cookie Policy](https://tagwise.me/cookies)
