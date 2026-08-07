@@ -24,7 +24,7 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          className="md:hidden fixed top-20 left-4 right-4 bg-background/95 dark:bg-[#0f1017]/95 backdrop-blur-2xl border border-border/80 dark:border-white/10 p-5 shadow-2xl shadow-black/60 z-50 space-y-3 max-h-[75vh] overflow-y-auto rounded-2xl"
+          className="md:hidden fixed top-20 left-4 right-4 bg-surface/95 backdrop-blur-2xl border border-border/80 dark:border-white/20 p-5 shadow-2xl shadow-black/60 z-50 space-y-3 max-h-[75vh] overflow-y-auto rounded-2xl"
         >
           <nav className="flex flex-col space-y-2">
             {NAV_LINKS.map((link) => {
@@ -52,8 +52,8 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
                           key={item.title}
                           href={item.href}
                           onClick={onClose}
-                          className={`w-full flex items-center justify-between pl-5 pr-3 py-2 text-sm font-semibold hover:bg-surface-secondary/50 transition-colors ${
-                            isActive ? "text-[#A862FF] dark:text-[#C48FFF]" : "text-foreground"
+                          className={`w-full flex items-center justify-between pl-5 pr-3 py-2 text-sm font-semibold hover:bg-surface-secondary/50 transition-colors rounded-lg ${
+                            isActive ? "bg-foreground text-background" : "text-foreground"
                           }`}
                         >
                           <span>{item.title}</span>
@@ -84,8 +84,8 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
                     <Link
                       href={link.href!}
                       onClick={onClose}
-                      className={`w-full flex items-center justify-between px-3 py-2 text-base font-semibold hover:bg-surface-secondary/50 transition-colors ${
-                        isActive ? "text-[#A862FF] dark:text-[#C48FFF]" : "text-foreground"
+                      className={`w-full flex items-center justify-between px-3 py-2 text-base font-semibold hover:bg-surface-secondary/50 transition-colors rounded-lg ${
+                        isActive ? "bg-foreground text-background" : "text-foreground"
                       }`}
                     >
                       <span>{link.label}</span>

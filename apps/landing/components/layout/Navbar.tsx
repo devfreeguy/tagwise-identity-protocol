@@ -44,7 +44,7 @@ export function Navbar() {
         ref={navRef}
         className={`relative transition-all duration-500 flex items-center justify-between ${
           isScrolled
-            ? "w-9/10 max-w-6xl px-3 py-2 bg-background/90 dark:bg-[#0d0e14]/90 backdrop-blur-2xl border border-border/80 dark:border-white/10 gap-4 sm:gap-6 rounded-full"
+            ? "w-9/10 max-w-6xl px-3 py-2 bg-surface/90 backdrop-blur-2xl border border-border/80 dark:border-white/20 gap-4 sm:gap-6 rounded-full"
             : "w-full px-4 sm:px-6 py-3 bg-transparent max-w-7xl"
         }`}
       >
@@ -56,7 +56,7 @@ export function Navbar() {
           className={`hidden md:flex items-center transition-all duration-500 ${
             isScrolled
               ? "bg-transparent gap-1"
-              : "bg-surface/60 dark:bg-[#13141c]/80 backdrop-blur-xl border border-border/60 dark:border-white/10 p-1 gap-1 rounded-full"
+              : "bg-surface/40 dark:bg-white/5 backdrop-blur-xl border border-border/60 dark:border-white/20 p-1 gap-1 rounded-full"
           }`}
         >
           {NAV_LINKS.map((link) => {
@@ -75,8 +75,8 @@ export function Navbar() {
                   <button
                     className={`flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium transition-all rounded-full ${
                       isGroupActive
-                        ? "text-foreground bg-surface/80 dark:bg-white/5"
-                        : "text-muted-foreground hover:text-foreground hover:bg-surface/80 dark:hover:bg-white/5"
+                        ? "text-foreground bg-surface-secondary dark:bg-white/10"
+                        : "text-muted-foreground hover:text-foreground hover:bg-surface-secondary dark:hover:bg-white/10"
                     }`}
                   >
                     <span>{link.label}</span>
@@ -90,7 +90,7 @@ export function Navbar() {
                     href={link.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium transition-all text-muted-foreground hover:text-foreground hover:bg-surface/80 dark:hover:bg-white/5 rounded-full`}
+                    className={`flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium transition-all text-muted-foreground hover:text-foreground hover:bg-surface-secondary dark:hover:bg-white/10 rounded-full`}
                   >
                     <span>{link.label}</span>
                   </a>
@@ -99,8 +99,8 @@ export function Navbar() {
                     href={link.href!}
                     className={`flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium transition-all rounded-full ${
                       isActive
-                        ? "text-[#A862FF] dark:text-[#C48FFF] bg-[#7928CA]/15"
-                        : "text-muted-foreground hover:text-foreground hover:bg-surface/80 dark:hover:bg-white/5"
+                        ? "bg-foreground text-background"
+                        : "text-muted-foreground hover:text-foreground hover:bg-surface-secondary dark:hover:bg-white/10"
                     }`}
                   >
                     <span>{link.label}</span>

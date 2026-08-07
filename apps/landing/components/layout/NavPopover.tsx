@@ -47,10 +47,10 @@ export function NavPopover({
                     >
                       <IconComponent
                         size={20}
-                        className="text-[#8B98C2] group-hover/item:text-[#9F55FF] transition-colors shrink-0 mt-0.5"
+                        className="text-[#8B98C2] group-hover/item:text-foreground transition-colors shrink-0 mt-0.5"
                       />
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5 font-semibold text-foreground group-hover/item:text-[#9F55FF] transition-colors">
+                        <div className="flex items-center gap-1.5 font-semibold text-foreground">
                           <span>{item.title}</span>
                           {item.external && (
                             <IconArrowUpRight
@@ -80,7 +80,7 @@ export function NavPopover({
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label={social.label}
-                        className="flex-1 bg-background hover:bg-surface-secondary/50 flex items-center justify-center text-muted-foreground hover:text-[#9F55FF] transition-colors"
+                        className="flex-1 bg-background hover:bg-surface-secondary/50 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
                       >
                         <SocialIcon size={18} />
                       </a>
