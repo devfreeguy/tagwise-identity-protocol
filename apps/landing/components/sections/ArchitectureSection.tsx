@@ -12,6 +12,7 @@ import {
   IconBolt,
 } from "@tabler/icons-react";
 import { NETWORK_NAME } from "../../lib/constants";
+import { cn } from "@heroui/styles";
 
 export function ArchitectureSection() {
   const layers = [
@@ -81,12 +82,15 @@ export function ArchitectureSection() {
       <SectionWrapper className="space-y-12 sm:space-y-16">
         {/* Sharp 1px Grid Vertical Stack */}
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 bg-border/80 border border-border/80 gap-px rounded-2xl overflow-hidden">
-          {layers.map((layer) => {
+          {layers.map((layer, i) => {
             const Icon = layer.icon;
             return (
               <div
                 key={layer.id}
-                className="group flex flex-col gap-6 bg-background hover:bg-linear-to-br hover:from-[#7928CA] hover:to-[#9F55FF] p-6 sm:p-16 transition-all duration-300 relative overflow-hidden cursor-default"
+                className={cn(
+                  "group flex flex-col gap-6 bg-surface hover:bg-linear-to-br hover:from-[#7928CA] hover:to-[#9F55FF] p-6 sm:p-16 transition-all duration-300 relative overflow-hidden cursor-default",
+                  i == 0 ? "md:col-span-2" : "",
+                )}
               >
                 <div className="flex gap-5 sm:gap-6 relative z-10">
                   <div className="shrink-0 flex items-center justify-center w-12 h-12 bg-surface group-hover:bg-white/10 border border-border/80 group-hover:border-white/20 text-muted-foreground group-hover:text-white transition-all duration-300">

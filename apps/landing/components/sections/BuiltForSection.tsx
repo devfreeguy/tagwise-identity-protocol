@@ -64,7 +64,7 @@ export function BuiltForSection() {
           {audiences.map((item) => {
             const Icon = item.icon;
             return (
-              <a
+              <div
                 key={item.title}
                 className="group flex flex-col bg-background/40 hover:bg-linear-to-br hover:from-[#7928CA] hover:to-[#9F55FF] p-8 sm:p-10 lg:p-14 min-h-80 transition-all duration-300 relative overflow-hidden"
               >
@@ -91,7 +91,7 @@ export function BuiltForSection() {
                     <Button variant="tertiary">{item.linkText}</Button>
                   </a>
                 </div>
-              </a>
+              </div>
             );
           })}
         </div>

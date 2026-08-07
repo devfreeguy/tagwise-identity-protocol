@@ -6,7 +6,7 @@ import { LINKS } from "../../lib/constants";
 
 export function HeroSection() {
   return (
-    <section className="relative h-screen min-h-160 flex flex-col justify-end pb-12 sm:pb-16 lg:pb-20 pt-28 overflow-hidden ambient ambient-spectrum ambient-strong ambient-grain">
+    <section className="relative h-dvh min-h-160 flex flex-col justify-end pb-12 sm:pb-16 lg:pb-20 pt-28 overflow-hidden ambient ambient-spectrum ambient-strong ambient-grain">
       <div className="max-w-7xl mx-auto w-full px-6 sm:px-10 lg:px-12 relative z-10">
         <div className="max-w-3xl space-y-5 text-left">
           {/* Title or Heading of the landing page */}

@@ -8,13 +8,63 @@ import {
   IconCode,
   IconExternalLink,
   IconBrandTypescript,
+  type Icon,
 } from "@tabler/icons-react";
-import { Tabs, Tab } from "@heroui/react";
+import { Tabs, Tab, cn, type TabProps } from "@heroui/react";
 import { Highlight, themes } from "prism-react-renderer";
 import { SectionWrapper } from "../layout/SectionWrapper";
 import { Button } from "../ui/Button";
 import Link from "next/link";
 import { LINKS } from "../../lib/constants";
+
+interface ITabItem {
+  id: string;
+  isActive: boolean;
+  Icon: Icon;
+  label: string;
+}
+
+const TabList = [
+  {
+    icon: IconBrandTypescript,
+    id: "ts",
+    label: "Typescript",
+  },
+  {
+    icon: IconCode,
+    id: "rest",
+    label: "REST API",
+  },
+  {
+    icon: IconTerminal2,
+    id: "curl",
+    label: "cURL",
+  },
+];
+
+const TabItem = ({ id, isActive, Icon, label }: ITabItem) => {
+  return (
+    <Tabs.Tab
+      id={id}
+      className={`flex items-center gap-2 whitespace-nowrap ${
+        isActive
+          ? "text-white"
+          : "text-muted-foreground group-hover:text-foreground"
+      }`}
+    >
+      <Icon
+        size={14}
+        // className={
+        //   isActive
+        //     ? "text-white"
+        //     : "text-muted-foreground group-hover:text-foreground"
+        // }
+      />
+      <span>{label}</span>
+      <Tabs.Indicator className="bg-accent" />
+    </Tabs.Tab>
+  );
+};
 
 export function DeveloperExperienceSection() {
   const [activeTab, setActiveTab] = useState<"ts" | "rest" | "curl">("ts");
@@ -82,61 +132,18 @@ Content-Type: application/json
                     className="bg-background"
                   >
                     <Tabs.List aria-label="Code Snippets">
-                      <Tabs.Tab
-                        id="ts"
-                        className="flex items-center gap-2 whitespace-nowrap"
-                      >
-                        <IconBrandTypescript
-                          size={14}
-                          className={
-                            activeTab === "ts"
-                              ? "text-white"
-                              : "text-muted-foreground group-hover:text-foreground"
-                          }
+                      {TabList.map(({ icon: Icon, id, label }, i) => (
+                        <TabItem
+                          key={i}
+                          isActive={activeTab == id}
+                          id={id}
+                          Icon={Icon}
+                          label={label}
                         />
-                        <span>TypeScript</span>
-                        <Tabs.Indicator className="bg-accent" />
-                      </Tabs.Tab>
-
-                      <Tabs.Tab
-                        id="rest"
-                        className="flex items-center gap-2 whitespace-nowrap"
-                      >
-                        <IconCode
-                          size={14}
-                          className={
-                            activeTab === "rest"
-                              ? "text-white"
-                              : "text-muted-foreground group-hover:text-foreground"
-                          }
-                        />
-                        <span>REST API</span>
-                        <Tabs.Indicator className="bg-accent" />
-                      </Tabs.Tab>
-
-                      <Tabs.Tab
-                        id="curl"
-                        className="flex items-center gap-2 whitespace-nowrap"
-                      >
-                        <IconTerminal2
-                          size={14}
-                          className={
-                            activeTab === "curl"
-                              ? "text-white"
-                              : "text-muted-foreground group-hover:text-foreground"
-                          }
-                        />
-                        <span>cURL</span>
-                        <Tabs.Indicator className="bg-accent" />
-                      </Tabs.Tab>
+                      ))}
                     </Tabs.List>
                   </Tabs.ListContainer>
-                  {/* {items.map((item) => (
-          <Tabs.Panel key={item.id} className="pt-4" id={item.id}>
-            <p>{item.label} panel content.</p>
-          </Tabs.Panel>
-          ))} */}
-                </Tabs>{" "}
+                </Tabs>
               </div>
 
               {/* Copy Button */}
@@ -144,10 +151,11 @@ Content-Type: application/json
                 size="sm"
                 variant="tertiary"
                 onPress={handleCopy}
-                className="px-4 py-2 "
+                className="px-4 py-2"
+                isDisabled={copied}
               >
-                <IconCopy size={14} />
-                <span>Copy</span>
+                {copied ? <IconCheck size={14} /> : <IconCopy size={14} />}
+                <span>{copied ? "Copied" : "Copy"}</span>
               </Button>
             </div>
 
@@ -235,19 +243,11 @@ Content-Type: application/json
 
         {/* Action Buttons */}
         <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
-          <Link
-            href={LINKS.DOCS}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <Link href={LINKS.DOCS} target="_blank" rel="noopener noreferrer">
             <Button>Read Documentation</Button>
           </Link>
 
-          <Link
-            href={LINKS.GITHUB}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <Link href={LINKS.GITHUB} target="_blank" rel="noopener noreferrer">
             <Button variant="tertiary">SDK Repository</Button>
           </Link>
         </div>

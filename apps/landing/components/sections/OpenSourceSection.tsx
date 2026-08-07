@@ -43,7 +43,7 @@ export function OpenSourceSection() {
     <section className="py-24 relative overflow-hidden">
       <SectionWrapper className="space-y-16 relative z-10">
         {/* Monorepo Directory Visual + Packages Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-px bg-border/80 border border-border/80 shadow-sm max-w-7xl mx-auto rounded-2xl overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-12 border border-border/80 shadow-sm max-w-7xl mx-auto rounded-2xl overflow-hidden">
           {/* Left: Directory Tree */}
           <div className="lg:col-span-5 bg-[#0a0a0c] p-8 sm:p-10 font-mono text-xs flex flex-col justify-between min-h-100">
             <div className="flex items-center justify-between pb-4 border-b border-white/10 text-muted">
