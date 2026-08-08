@@ -8,6 +8,7 @@ import { NAV_LINKS } from "./nav-data";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LINKS } from "../../lib/constants";
+import { ThemeToggle } from "../ui/ThemeToggle";
 
 interface MobileNavProps {
   isOpen: boolean;
@@ -106,14 +107,16 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
               <IconBrandGithub size={18} />
               GitHub
             </a>
-            <Button
-              as="a"
-              href="#start-building"
-              onClick={onClose}
-              variant="primary"
-            >
-              Start Building
-            </Button>
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <Button
+                as="a"
+                href="#start-building"
+                onClick={onClose}
+              >
+                Start Building
+              </Button>
+            </div>
           </div>
         </motion.div>
       )}

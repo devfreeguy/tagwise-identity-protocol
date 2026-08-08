@@ -1,15 +1,16 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import { IconMenu2, IconX, IconChevronDown } from "@tabler/icons-react";
-import { Logo } from "../ui/logo";
-import { NAV_LINKS, type NavGroup } from "./nav-data";
-import { MobileNav } from "./MobileNav";
-import { NavPopover } from "./NavPopover";
+import { useThemeColors } from "@/hooks/useThemeColors";
+import { IconChevronDown, IconMenu2, IconX } from "@tabler/icons-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "../ui/Button";
-import { useThemeColors } from "@/hooks/useThemeColors";
+import { Logo } from "../ui/logo";
+import { MobileNav } from "./MobileNav";
+import { NAV_LINKS, type NavGroup } from "./nav-data";
+import { NavPopover } from "./NavPopover";
+import { ThemeToggle } from "../ui/ThemeToggle";
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -113,9 +114,10 @@ export function Navbar() {
 
         {/* Right CTA Button (Matching Wireframe 1 exactly) */}
         <div className="hidden md:flex items-center gap-2 sm:gap-3 shrink-0">
-          <Button as="a" href="#start-building" variant="primary">
-            Start Building
-          </Button>
+          <ThemeToggle />
+          <Link href="/developer">
+            <Button variant="primary">Start Building</Button>
+          </Link>
         </div>
 
         {/* Mobile menu toggle */}

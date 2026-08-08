@@ -8,7 +8,7 @@ import {
 import { tv, type VariantProps } from "tailwind-variants";
 
 export const buttonStyles = tv({
-  base: "font-mono font-semibold uppercase tracking-widest transition-all duration-300 rounded-full",
+  base: "font-mono font-semibold uppercase tracking-widest transition-all duration-300 rounded-full leading-tight",
   variants: {
     variant: {
       primary: "bg-foreground text-background hover:bg-foreground/90 border-transparent",

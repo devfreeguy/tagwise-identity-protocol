@@ -28,53 +28,34 @@ export type ThemeColors = {
 export function useThemeColors() {
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const [colors, setColors] = useState<Partial<ThemeColors>>({});
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const getCssVar = useCallback(
-    (varName: string) => {
-      if (typeof window === "undefined" || !mounted) return "";
-      
-      const formattedVarName = varName.startsWith("--") ? varName : `--${varName}`;
-      let val = getComputedStyle(document.documentElement).getPropertyValue(formattedVarName).trim();
-      
-      // If a color is just space-separated numbers (common in Tailwind/HeroUI raw vars), we can wrap it if needed.
-      // But typically we return it as-is and let the consumer decide.
-      return val;
-    },
-    [mounted, resolvedTheme]
-  );
-
-  useEffect(() => {
-    if (!mounted) return;
-
-    // Load ready-made colors
-    // Try both standard '--color-name' and just '--name' to ensure compatibility with Tailwind v4 & HeroUI
-    setColors({
-      background: getCssVar("background") || getCssVar("color-background"),
-      foreground: getCssVar("foreground") || getCssVar("color-foreground"),
-      primary: getCssVar("primary") || getCssVar("color-primary"),
-      secondary: getCssVar("secondary") || getCssVar("color-secondary"),
-      success: getCssVar("success") || getCssVar("color-success"),
-      warning: getCssVar("warning") || getCssVar("color-warning"),
-      danger: getCssVar("danger") || getCssVar("color-danger"),
-      border: getCssVar("border") || getCssVar("color-border"),
-      
-      gold: getCssVar("gold"),
-      teal: getCssVar("teal"),
-      coral: getCssVar("coral"),
-      rose: getCssVar("rose"),
-      mint: getCssVar("mint"),
-    });
-  }, [mounted, resolvedTheme, getCssVar]);
+  const getCssVar = useCallback((varName: string) => {
+    const formattedVarName = varName.startsWith("--") ? varName : `--${varName}`;
+    return `var(${formattedVarName})`;
+  }, []);
 
   return {
-    ...colors,
+    background: "var(--background)",
+    foreground: "var(--foreground)",
+    primary: "var(--primary)",
+    secondary: "var(--secondary)",
+    success: "var(--success)",
+    warning: "var(--warning)",
+    danger: "var(--danger)",
+    border: "var(--border)",
+    
+    gold: "var(--gold)",
+    teal: "var(--teal)",
+    coral: "var(--coral)",
+    rose: "var(--rose)",
+    mint: "var(--mint)",
+
     getCssVar,
     mounted,
     resolvedTheme,
-  };
+  } as const;
 }

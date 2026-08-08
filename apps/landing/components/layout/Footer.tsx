@@ -1,27 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { IconBrandGithub, IconBrandX, IconBrandNpm, IconExternalLink, IconSun, IconMoon } from "@tabler/icons-react";
+import {
+  IconBrandGithub,
+  IconBrandX,
+  IconBrandNpm,
+  IconExternalLink,
+} from "@tabler/icons-react";
 import { Button } from "@heroui/react";
-import { useTheme } from "next-themes";
 import { Logo } from "../ui/logo";
 import { SectionWrapper } from "./SectionWrapper";
 import { NETWORK_NAME, LINKS } from "../../lib/constants";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
-  const [mounted, setMounted] = useState(false);
-  const { theme, setTheme } = useTheme();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const toggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark");
-  };
-
-  const isDark = theme === "dark";
 
   const footerColumns = [
     {
@@ -40,7 +31,11 @@ export function Footer() {
         { label: "GitHub", href: LINKS.GITHUB, external: true },
         { label: "npm Package", href: LINKS.NPM, external: true },
         { label: "X (Twitter)", href: LINKS.TWITTER, external: true },
-        { label: "License", href: `${LINKS.GITHUB}/blob/main/LICENSE`, external: true },
+        {
+          label: "License",
+          href: `${LINKS.GITHUB}/blob/main/LICENSE`,
+          external: true,
+        },
       ],
     },
     {
@@ -60,24 +55,32 @@ export function Footer() {
       {/* <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-200 h-75 bg-[#7928CA]/5 rounded-full blur-[140px] pointer-events-none" /> */}
 
       <SectionWrapper className="py-16 sm:py-24 relative z-10">
-        
         {/* Main Bento Grid */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-px bg-border/80 border border-border/80 shadow-sm rounded-2xl overflow-hidden">
-          
           {/* Brand & Mission */}
           <div className="md:col-span-5 bg-background p-8 sm:p-10 flex flex-col justify-between group">
             <div className="space-y-6">
               <Logo showName={true} size="md" />
               <p className="text-sm text-muted-foreground leading-relaxed max-w-sm font-medium">
-                The foundational identity layer for payments on Solana. Enabling human-readable @tags, verifiable identity proofs, and universal resolver infrastructure.
+                The foundational identity layer for payments on Solana. Enabling
+                human-readable @tags, verifiable identity proofs, and universal
+                resolver infrastructure.
               </p>
             </div>
-            
+
             <div className="flex items-center gap-3 pt-12">
               <Button
                 isIconOnly
                 variant="outline"
-                render={({ ref, ...props }: any) => <a {...props} href={LINKS.GITHUB} target="_blank" rel="noopener noreferrer" aria-label="GitHub" />}
+                render={({ ref, ...props }: any) => (
+                  <a
+                    {...props}
+                    href={LINKS.GITHUB}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="GitHub"
+                  />
+                )}
                 className="w-11 h-11 bg-surface-secondary border-border/80 text-muted-foreground hover:bg-linear-to-br hover:from-[#7928CA] hover:to-[#9F55FF] hover:border-transparent hover:text-white transition-all duration-300"
               >
                 <IconBrandGithub size={18} />
@@ -85,7 +88,15 @@ export function Footer() {
               <Button
                 isIconOnly
                 variant="outline"
-                render={({ ref, ...props }: any) => <a {...props} href={LINKS.TWITTER} target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)" />}
+                render={({ ref, ...props }: any) => (
+                  <a
+                    {...props}
+                    href={LINKS.TWITTER}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="X (Twitter)"
+                  />
+                )}
                 className="w-11 h-11 bg-surface-secondary border-border/80 text-muted-foreground hover:bg-linear-to-br hover:from-[#7928CA] hover:to-[#9F55FF] hover:border-transparent hover:text-white transition-all duration-300"
               >
                 <IconBrandX size={18} />
@@ -93,7 +104,15 @@ export function Footer() {
               <Button
                 isIconOnly
                 variant="outline"
-                render={({ ref, ...props }: any) => <a {...props} href={LINKS.NPM} target="_blank" rel="noopener noreferrer" aria-label="npm package" />}
+                render={({ ref, ...props }: any) => (
+                  <a
+                    {...props}
+                    href={LINKS.NPM}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="npm package"
+                  />
+                )}
                 className="w-11 h-11 bg-surface-secondary border-border/80 text-muted-foreground hover:bg-linear-to-br hover:from-[#7928CA] hover:to-[#9F55FF] hover:border-transparent hover:text-white transition-all duration-300"
               >
                 <IconBrandNpm size={18} />
@@ -136,7 +155,7 @@ export function Footer() {
         {/* Bottom copyright */}
         <div className="mt-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 border border-border/80 bg-surface-secondary rounded-2xl overflow-hidden">
           <p className="text-[10px] sm:text-[11px] font-mono uppercase tracking-widest text-muted-foreground">
-            © {currentYear} Tagwise Protocol.
+            &copy; {currentYear} Tagwise Identity Protocol.
           </p>
 
           <div className="flex flex-wrap items-center gap-4 text-[10px] font-mono uppercase tracking-widest">
@@ -144,23 +163,13 @@ export function Footer() {
               <span className="w-1.5 h-1.5 bg-emerald-400" />
               {NETWORK_NAME} Ready
             </span>
-            
+
             <span className="text-muted-foreground px-2.5 py-1.5 hidden sm:block">
               Open-Source Infrastructure
             </span>
 
-            <Button
-              isIconOnly
-              variant="tertiary"
-              onPress={toggleTheme}
-              aria-label="Toggle dark mode"
-              className="w-8 h-8 min-w-8 text-muted-foreground hover:text-foreground hover:bg-background border border-transparent hover:border-border/80 transition-all rounded-full"
-            >
-              {mounted && (isDark ? <IconSun size={14} /> : <IconMoon size={14} />)}
-            </Button>
           </div>
         </div>
-
       </SectionWrapper>
     </footer>
   );
