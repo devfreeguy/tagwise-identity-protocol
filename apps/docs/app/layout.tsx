@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import { Figtree } from "next/font/google";
 import { GeistMono } from "geist/font/mono";
 import { RootProvider } from "fumadocs-ui/provider/next";
+import { PostHogProvider } from "../components/PostHogProvider";
 
 const figtree = Figtree({
   subsets: ["latin"],
@@ -32,7 +33,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       suppressHydrationWarning
     >
       <body className="flex min-h-screen flex-col">
-        <RootProvider>{children}</RootProvider>
+        <PostHogProvider>
+          <RootProvider>{children}</RootProvider>
+        </PostHogProvider>
       </body>
     </html>
   );
