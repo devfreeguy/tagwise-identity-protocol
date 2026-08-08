@@ -3,7 +3,7 @@ export const NETWORK_SLUG = "devnet"; // useful for URLs if needed
 
 export const LINKS = {
   GITHUB: "https://github.com/devfreeguy/tagwise-identity-protocol",
-  TWITTER: "https://x.com/tagwiseme",
+  TWITTER: "https://x.com/paytagwise",
   DOCS: "https://docs.tagwise.me",
   API_DOCS: "https://docs.tagwise.me/api",
   NPM: "https://www.npmjs.com/package/@tagwise/tip-sdk",
