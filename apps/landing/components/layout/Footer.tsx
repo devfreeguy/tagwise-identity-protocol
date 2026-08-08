@@ -74,6 +74,7 @@ export function Footer() {
                 variant="outline"
                 render={({ ref, ...props }: any) => (
                   <a
+                    ref={ref}
                     {...props}
                     href={LINKS.GITHUB}
                     target="_blank"
@@ -90,6 +91,7 @@ export function Footer() {
                 variant="outline"
                 render={({ ref, ...props }: any) => (
                   <a
+                    ref={ref}
                     {...props}
                     href={LINKS.TWITTER}
                     target="_blank"
@@ -106,6 +108,7 @@ export function Footer() {
                 variant="outline"
                 render={({ ref, ...props }: any) => (
                   <a
+                    ref={ref}
                     {...props}
                     href={LINKS.NPM}
                     target="_blank"

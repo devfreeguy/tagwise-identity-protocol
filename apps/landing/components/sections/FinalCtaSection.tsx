@@ -31,6 +31,7 @@ export function FinalCtaSection() {
                 <Button
                   render={({ ref, ...props }: any) => (
                     <a
+                      ref={ref}
                       {...props}
                       href={LINKS.DOCS}
                       target="_blank"
@@ -49,6 +50,7 @@ export function FinalCtaSection() {
                 <Button
                   render={({ ref, ...props }: any) => (
                     <a
+                      ref={ref}
                       {...props}
                       href={LINKS.GITHUB}
                       target="_blank"

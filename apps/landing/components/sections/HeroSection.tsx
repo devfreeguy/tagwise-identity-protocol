@@ -28,6 +28,7 @@ export function HeroSection() {
               variant="primary"
               render={({ ref, ...props }: any) => (
                 <a
+                  ref={ref}
                   {...props}
                   href={LINKS.DOCS}
                   target="_blank"
@@ -41,7 +42,7 @@ export function HeroSection() {
             <Button
               variant="tertiary"
               render={({ ref, ...props }: any) => (
-                <a {...props} href="/whitepaper" />
+                <a ref={ref} {...props} href="/whitepaper" />
               )}
             >
               Read Whitepaper
