@@ -35,13 +35,16 @@ ARG APP=api
 # Manifests only, first: this layer only invalidates when a package.json,
 # the lockfile, or the workspace config changes. pnpm's frozen-lockfile
 # install needs every workspace member's manifest present to validate
-# against pnpm-lock.yaml, even the ones this image never builds.
+# against pnpm-lock.yaml, even the ones this image never builds. apps/web
+# is deliberately excluded: it's an empty placeholder directory (no
+# package.json) and has no entry under pnpm-lock.yaml's importers, so pnpm
+# already treats it as not-a-package -- copying a manifest for it would be
+# both unnecessary and impossible.
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc tsconfig.base.json ./
 COPY apps/api/package.json apps/api/package.json
 COPY apps/docs/package.json apps/docs/package.json
 COPY apps/indexer/package.json apps/indexer/package.json
 COPY apps/landing/package.json apps/landing/package.json
-COPY apps/web/package.json apps/web/package.json
 COPY packages/core/package.json packages/core/package.json
 COPY packages/db/package.json packages/db/package.json
 COPY packages/moderation/package.json packages/moderation/package.json
@@ -50,9 +53,9 @@ COPY packages/sdk/package.json packages/sdk/package.json
 RUN pnpm install --frozen-lockfile
 
 # Real source only for what actually gets built: the three shared packages
-# and the selected app. apps/docs, apps/landing, apps/web, packages/sdk
-# never get their source copied in -- their manifests above were only needed
-# to satisfy the workspace-wide install.
+# and the selected app. apps/docs, apps/landing, packages/sdk never get
+# their source copied in -- their manifests above were only needed to
+# satisfy the workspace-wide install. apps/web has no source either way.
 COPY packages/core/ packages/core/
 COPY packages/db/ packages/db/
 COPY packages/moderation/ packages/moderation/
@@ -70,6 +73,9 @@ RUN pnpm --filter @tip/db build \
 # needs: an unfiltered install would also pull in every dependency of
 # apps/docs, apps/landing, apps/web, and packages/sdk (Next.js, HeroUI,
 # fumadocs, R3F, GSAP, ...), none of which apps/api or apps/indexer import.
+# apps/web has no package.json (empty placeholder, not a pnpm-lock.yaml
+# importer) and is intentionally not copied here either -- see the builder
+# stage above for the full reasoning.
 # ==============================================================================
 FROM base AS prod-deps
 ARG APP=api
@@ -79,7 +85,6 @@ COPY apps/api/package.json apps/api/package.json
 COPY apps/docs/package.json apps/docs/package.json
 COPY apps/indexer/package.json apps/indexer/package.json
 COPY apps/landing/package.json apps/landing/package.json
-COPY apps/web/package.json apps/web/package.json
 COPY packages/core/package.json packages/core/package.json
 COPY packages/db/package.json packages/db/package.json
 COPY packages/moderation/package.json packages/moderation/package.json
