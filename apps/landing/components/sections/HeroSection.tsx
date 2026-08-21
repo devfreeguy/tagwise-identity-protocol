@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { Button } from "../ui/Button";
 import { LINKS } from "../../lib/constants";
 
@@ -42,7 +43,7 @@ export function HeroSection() {
             <Button
               variant="tertiary"
               render={({ ref, ...props }: any) => (
-                <a ref={ref} {...props} href="/whitepaper" />
+                <Link ref={ref} {...props} href="/whitepaper" />
               )}
             >
               Read Whitepaper

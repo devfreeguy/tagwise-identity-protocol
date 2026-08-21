@@ -56,14 +56,16 @@ This is a **pnpm + Turborepo** monorepo. All `apps/*` and `packages/*` directori
 │   ├── api/          HTTP REST API (NestJS + Fastify)
 │   ├── docs/         Documentation site (Next.js + Fumadocs)
 │   ├── indexer/      On-chain event indexer
-│   └── web/          Web frontend
+│   ├── landing/      Landing page & showcase site (Next.js + HeroUI)
+│   └── web/          Web frontend (placeholder directory)
 ├── packages/
 │   ├── core/         Shared business logic (cache keys, utilities)
 │   ├── db/           Database layer (Prisma + PostgreSQL)
 │   ├── moderation/   Content moderation shared logic
 │   └── sdk/          Public TypeScript client SDK (@tagwise/tip-sdk)
-└── programs/
-    └── tip-registry/ Solana program (Rust/Anchor) — outside the JS workspace
+├── programs/
+│   └── tip-registry/ Solana program (Rust/Anchor) — outside the JS workspace
+└── scripts/          Repository utility scripts
 ```
 
 ---
@@ -77,7 +79,8 @@ This is a **pnpm + Turborepo** monorepo. All `apps/*` and `packages/*` directori
 | [`apps/api`](./apps/api) | `@tip/api` | NestJS/Fastify HTTP API. Handles tag resolution, registration, wallet auth (SIWS), profile updates, and payment link generation. Backed by PostgreSQL and Redis. |
 | [`apps/docs`](./apps/docs) | `@tip/docs` | Next.js documentation site powered by Fumadocs. Deployed at [docs.tagwise.me](https://docs.tagwise.me). Includes auto-generated REST API reference from OpenAPI. |
 | [`apps/indexer`](./apps/indexer) | `@tip/indexer` | Event-driven service that listens to `tip_registry` program logs on-chain, syncs changes to the PostgreSQL mirror, and actively invalidates Redis cache entries. |
-| [`apps/web`](./apps/web) | — | Web frontend application. |
+| [`apps/landing`](./apps/landing) | `@tip/landing` | Next.js landing page and interactive showcase web application built with HeroUI, Framer Motion, and Three.js. Deployed at [tagwise.me](https://tagwise.me). |
+| [`apps/web`](./apps/web) | — | Web frontend application (placeholder directory). |
 
 ### Internal Packages
 
@@ -154,6 +157,7 @@ All top-level scripts delegate to Turborepo and run across workspace packages in
 | `pnpm dev` | Start all apps in development/watch mode |
 | `pnpm build` | Build all packages and apps |
 | `pnpm build:docs` | Build only the docs app (generates OpenAPI spec first) |
+| `pnpm build:landing` | Build only the landing page app |
 | `pnpm lint` | Lint all packages |
 | `pnpm test` | Run all tests |
 | `pnpm typecheck` | TypeScript type-check all packages |
