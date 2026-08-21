@@ -1,0 +1,38 @@
+# Dependencies and build output: reinstalled/rebuilt inside the image.
+# ** so nested copies (apps/*/node_modules, packages/*/node_modules, etc.)
+# are excluded too, not just the root ones.
+**/node_modules
+**/.pnpm-store
+**/dist
+**/.next
+**/.turbo
+**/.source
+**/coverage
+**/*.tsbuildinfo
+
+# Env files: never baked into an image.
+.env
+.env.*
+
+# VCS / editor / agent tooling.
+.git
+.github
+.vscode
+.agents
+.claude
+.DS_Store
+
+# Solana program: separate Rust/Anchor toolchain, outside the pnpm
+# workspace, not a dependency of @tip/api or @tip/indexer.
+programs
+
+# Docs / packaging metadata not needed to build or run the images.
+*.md
+LICENSE
+render.yaml
+skills-lock.json
+scripts
+
+# Docker's own files.
+Dockerfile
+.dockerignore
