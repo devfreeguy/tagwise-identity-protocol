@@ -32,7 +32,22 @@ echo "==> Deploying api/indexer at tag ${IMAGE_TAG}"
 
 docker compose -f compose.yml --env-file .env pull api indexer
 
-docker compose -f compose.yml --env-file .env up -d --no-deps --force-recreate api indexer
+# tip-api/tip-indexer may still be the original manually-created containers
+# (not tracked as belonging to this Compose project), which `docker compose
+# up --force-recreate` cannot adopt or replace -- it only recreates
+# containers Compose itself created. Removing them by their exact, fixed
+# names (set via compose.yml's container_name:) and letting `up` create
+# fresh Compose-managed ones in their place is what performs that one-time
+# adoption; it is also exactly what every subsequent deploy does, so this
+# is not a special first-run path. Named removal only, nothing broader:
+# never `docker compose down`, never `--remove-orphans`, and this can only
+# ever affect these two exact container names -- never infra-postgres,
+# infra-redis, or anything else on the host. Runs only after the pull
+# above succeeds (set -euo pipefail stops the script at the pull if it
+# fails, before this line is ever reached).
+docker rm -f tip-api tip-indexer
+
+docker compose -f compose.yml --env-file .env up -d --no-deps api indexer
 
 # Waits for GET /health to report BOTH dependencies reachable, not just a
 # 200 status code: the endpoint always answers 200, with db/redis

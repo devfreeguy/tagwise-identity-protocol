@@ -8,9 +8,13 @@
 # project creates, owns, starts, stops, or can accidentally delete the
 # volumes of, because it has no service block for them at all. The deploy
 # pipeline (deploy/scripts/deploy.sh) only ever runs
-# `docker compose ... up -d --no-deps --force-recreate api indexer` (and,
-# manually, `--profile tools run --rm migrator`) -- never a bare
-# `docker compose up` or `docker compose down`.
+# `docker compose ... pull api indexer`, then `docker rm -f tip-api
+# tip-indexer` (named removal of exactly those two containers -- needed
+# because tip-api/tip-indexer may be the original manually-created
+# containers, which Compose cannot adopt or recreate on its own), then
+# `docker compose ... up -d --no-deps api indexer` (and, manually,
+# `--profile tools run --rm migrator`) -- never a bare `docker compose up`,
+# never `docker compose down`, never `--remove-orphans`.
 #
 # NETWORK: confirmed via production inspection -- infra-postgres and
 # infra-redis both run on a Docker network named "infra", which is also
