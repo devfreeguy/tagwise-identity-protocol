@@ -47,9 +47,20 @@ jobs:
 
       - run: pnpm --filter @tip/moderation build
 
-      - run: pnpm typecheck
+      # Filtered to @tip/api and @tip/indexer plus their workspace
+      # dependencies (--filter=X... includes X's deps), which resolves to
+      # exactly @tip/api, @tip/indexer, @tip/core, @tip/db, @tip/moderation
+      # -- the packages this pipeline actually builds and deploys.
+      # Deliberately NOT the unfiltered `pnpm typecheck`/`pnpm test`: those
+      # also run apps/docs and apps/landing, unrelated Next.js apps not
+      # part of this deployment. apps/docs in particular fails typecheck on
+      # a fresh checkout regardless of this pipeline (its fumadocs-mdx
+      # `.source/` collections are gitignored, generated only by `next
+      # dev`/`next build`, never by `tsc` alone) -- a real gap in that app,
+      # but not one this deploy pipeline should be blocked by.
+      - run: pnpm exec turbo run typecheck --filter=@tip/api... --filter=@tip/indexer...
 
-      - run: pnpm test
+      - run: pnpm exec turbo run test --filter=@tip/api... --filter=@tip/indexer...
 
   build-and-push:
     name: Build & push ${{ matrix.name }}
