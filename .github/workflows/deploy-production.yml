@@ -1,6 +1,6 @@
 name: Deploy production
 
-# Pushes to `production` build apps/api, apps/indexer, and the migrator
+# Pushes to `main` build apps/api, apps/indexer, and the migrator
 # tool from this repo's root Dockerfile, push all three to GHCR tagged by
 # commit SHA, then SSH into the OCI server and recreate only the api/indexer
 # containers. Postgres, Redis, and their volumes are never touched by this
@@ -92,6 +92,11 @@ jobs:
           echo "owner=${owner}" >> "$GITHUB_OUTPUT"
           echo "repo=${repo}" >> "$GITHUB_OUTPUT"
 
+      # QEMU registers binfmt_misc handlers so buildx can emulate arm64 on
+      # this (amd64) runner; without it, cross-platform builds fail. Must
+      # run before setup-buildx-action.
+      - uses: docker/setup-qemu-action@v3
+
       - uses: docker/setup-buildx-action@v3
 
       - uses: docker/login-action@v3
@@ -105,6 +110,10 @@ jobs:
           context: .
           file: Dockerfile
           target: ${{ matrix.target }}
+          # The OCI server is arm64; the runner is amd64. Building both in
+          # one multi-platform manifest so `docker compose pull` on the
+          # server resolves the right one automatically.
+          platforms: linux/amd64,linux/arm64
           build-args: |
             APP=${{ matrix.app_arg }}
           push: true
@@ -113,6 +122,16 @@ jobs:
             ${{ env.REGISTRY }}/${{ steps.image.outputs.owner }}/${{ steps.image.outputs.repo }}-${{ matrix.name }}:production
           cache-from: type=gha,scope=${{ matrix.name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.name }}
+
+      - name: Verify multi-platform manifest
+        run: |
+          docker buildx imagetools inspect \
+            ${{ env.REGISTRY }}/${{ steps.image.outputs.owner }}/${{ steps.image.outputs.repo }}-${{ matrix.name }}:${{ github.sha }} \
+            | grep -q 'linux/arm64'
+
+          docker buildx imagetools inspect \
+            ${{ env.REGISTRY }}/${{ steps.image.outputs.owner }}/${{ steps.image.outputs.repo }}-${{ matrix.name }}:${{ github.sha }} \
+            | grep -q 'linux/amd64'
 
   deploy:
     name: Deploy to OCI server
