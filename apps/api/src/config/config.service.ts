@@ -77,7 +77,9 @@ export class ConfigService {
       // Comma-separated origins allowed to make cross-origin requests (e.g.
       // the docs site). Defaults to "*" so nothing breaks without config, but
       // lock this down in production via the ALLOWED_ORIGINS env var.
-      allowedOrigins: (process.env.ALLOWED_ORIGINS ?? "*").split(",").map((o) => o.trim()),
+      allowedOrigins: (process.env.ALLOWED_ORIGINS?.trim() || "*")
+        .split(",")
+        .map((o) => o.trim()),
     };
   }
 }
