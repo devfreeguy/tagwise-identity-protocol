@@ -26,12 +26,12 @@ are `tip-api` and `tip-indexer`.
 ## Architecture
 
 ```
-git push production
+git push main
         |
         v
 GitHub Actions (.github/workflows/deploy-production.yml)
   1. typecheck + test
-  2. docker build --target {api,indexer,migrator}, push to GHCR
+  2. docker buildx build --platform linux/amd64,linux/arm64 --target {api,indexer,migrator}, push to GHCR
   3. rsync deploy/compose.yml + deploy/scripts/ to the server (never .env)
   4. ssh: deploy/scripts/deploy.sh -- pulls + recreates ONLY api/indexer,
      verifies api health and indexer running state
@@ -184,22 +184,24 @@ did, with the exact same behavior.
 
 6. **Copy `deploy/compose.yml`** from this repo to `/opt/tagwise/compose.yml`
    once by hand, so the very first deploy has something to work with.
-   Every subsequent push to `production` re-syncs it automatically.
+   Every subsequent push to `main` re-syncs it automatically.
 
-7. Trigger a deploy (push to `production`) and confirm `tip-api`/
+7. Trigger a deploy (push to `main`) and confirm `tip-api`/
    `tip-indexer` come up healthy per "Inspecting logs and health" below,
    while `infra-postgres`/`infra-redis`/Caddy remain untouched (`docker ps`
    shows the same container IDs for those two, unchanged uptime).
 
 ## How deployment works
 
-1. Push (or merge) to the `production` branch.
+1. Push (or merge) to the `main` branch.
 2. `verify` job: `pnpm install --frozen-lockfile`, builds `@tip/db`
    (needed for typecheck across the workspace), then `pnpm typecheck` and
    `pnpm test`. A failure here stops the deploy before anything is built.
 3. `build-and-push` job: builds `api`, `indexer`, and `migrator` from the
-   root `Dockerfile` (`docker build --target <name> --build-arg
-   APP=<api|indexer>`), pushes each to
+   root `Dockerfile` via Buildx (`--platform linux/amd64,linux/arm64
+   --target <name> --build-arg APP=<api|indexer>`), producing a single
+   multi-platform manifest per image so `docker compose pull` resolves the
+   right architecture automatically regardless of host CPU, pushes each to
    `ghcr.io/<owner>/<repo>-<name>:<git-sha>` and also retags it
    `ghcr.io/<owner>/<repo>-<name>:production` (a floating pointer at the
    most recently built image -- the deploy itself always uses the
@@ -242,7 +244,7 @@ IMAGE_OWNER=<owner> REPO_NAME=<repo> IMAGE_TAG=<previous-good-sha> \
   bash deploy/scripts/deploy.sh
 ```
 
-Find `<previous-good-sha>` from `git log production` or the GHCR package
+Find `<previous-good-sha>` from `git log main` or the GHCR package
 versions page. This runs the exact same pull/recreate/health-gate sequence
 as a normal deploy, just pointed at an older tag -- there is no separate
 "rollback mode," and it never touches `infra-postgres`/`infra-redis`
