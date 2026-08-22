@@ -1,0 +1,84 @@
+# Production compose stack for TIP on the self-hosted OCI server.
+#
+# ABSOLUTE RULE: this file defines the APPLICATION containers only --
+# api, indexer, and the on-demand migrator. It never defines postgres or
+# redis. infra-postgres and infra-redis are pre-existing, manually run
+# containers holding real production data; they are external
+# infrastructure to this file, full stop -- not something this compose
+# project creates, owns, starts, stops, or can accidentally delete the
+# volumes of, because it has no service block for them at all. The deploy
+# pipeline (deploy/scripts/deploy.sh) only ever runs
+# `docker compose ... up -d --no-deps --force-recreate api indexer` (and,
+# manually, `--profile tools run --rm migrator`) -- never a bare
+# `docker compose up` or `docker compose down`.
+#
+# NETWORK: confirmed via production inspection -- infra-postgres and
+# infra-redis both run on a Docker network named "infra", which is also
+# how tip-api/tip-indexer already reach them (container-name DNS, standard
+# on a Docker user-defined bridge network; the default `bridge` network
+# does NOT do this). EXISTING_INFRA_NETWORK in /opt/tagwise/.env is set to
+# "infra" accordingly -- see deploy/.env.example. This file only reads that
+# value via the substitution below; it does not hard-code it, so a future
+# environment (staging, a re-provisioned server) can differ without editing
+# this file.
+#
+# DATABASE_URL/REDIS_URL in .env must be the exact, already-working
+# connection strings tip-api/tip-indexer use today (confirmed shape:
+# postgresql://tip_user:<password>@infra-postgres:5432/tip_db and
+# redis://:<password>@infra-redis:6379) -- the password portion is real
+# production credential material and is never stored in this repository;
+# see deploy/.env.example.
+
+name: tagwise
+
+services:
+  api:
+    image: ghcr.io/${IMAGE_OWNER}/${REPO_NAME}-api:${IMAGE_TAG}
+    container_name: tip-api
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      # Loopback only, same port Caddy already proxies to today. Never
+      # bind 0.0.0.0 here -- that would expose the API directly, bypassing
+      # Caddy/TLS. Do not change this port arrangement.
+      - "127.0.0.1:3000:3000"
+    networks: [infra]
+    # Container-level HEALTHCHECK is defined in the Dockerfile's api stage
+    # (parses GET /health's body -- both db and redis must report
+    # "reachable" -- not just the HTTP status code).
+
+  indexer:
+    image: ghcr.io/${IMAGE_OWNER}/${REPO_NAME}-indexer:${IMAGE_TAG}
+    container_name: tip-indexer
+    restart: unless-stopped
+    env_file: .env
+    networks: [infra]
+    # No `ports:` -- background worker, no HTTP surface. No HEALTHCHECK
+    # either; see the Dockerfile's indexer stage for why. Liveness is
+    # verified by deploy.sh checking `docker inspect -f '{{.State.Running}}'`.
+    stop_grace_period: 65s # a few seconds above the app's own ~60s teardown budget
+
+  # Runs `prisma migrate deploy` against the EXISTING production database.
+  # Not started by `docker compose up` (profile-gated); run explicitly and
+  # deliberately, never automatically:
+  #   docker compose --profile tools pull migrator
+  #   docker compose --profile tools run --rm migrator
+  # Never invoked by deploy.sh or the GitHub Actions workflow.
+  migrator:
+    image: ghcr.io/${IMAGE_OWNER}/${REPO_NAME}-migrator:${IMAGE_TAG}
+    profiles: ["tools"]
+    env_file: .env
+    networks: [infra]
+
+networks:
+  # External: this network already exists -- it's the "infra" network
+  # infra-postgres/infra-redis already run on (confirmed via production
+  # inspection). Compose attaches api/indexer/migrator to it; it never
+  # creates, modifies, or removes it.
+  infra:
+    external: true
+    name: ${EXISTING_INFRA_NETWORK}
+
+# Deliberately no top-level `volumes:` -- this file owns no persistent
+# data. api and indexer are stateless; infra-postgres's and
+# infra-redis's actual volumes are managed entirely outside this file.

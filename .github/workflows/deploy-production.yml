@@ -1,0 +1,152 @@
+name: Deploy production
+
+# Pushes to `production` build apps/api, apps/indexer, and the migrator
+# tool from this repo's root Dockerfile, push all three to GHCR tagged by
+# commit SHA, then SSH into the OCI server and recreate only the api/indexer
+# containers. Postgres, Redis, and their volumes are never touched by this
+# workflow -- see deploy/compose.yml's header comment and deploy/README.md.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  # TURBO_TELEMETRY_DISABLED matters for any step that shells out to turbo
+  # (e.g. `pnpm test`/`pnpm typecheck` below); turbo's first non-interactive
+  # run otherwise shows a telemetry consent prompt that can hang a CI job
+  # waiting for input that will never come (see PRE_DEPLOY_CHECKLIST.md).
+  TURBO_TELEMETRY_DISABLED: "1"
+
+jobs:
+  verify:
+    name: Typecheck & test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.15.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm --filter @tip/db build
+
+      - run: pnpm --filter @tip/core build
+
+      - run: pnpm --filter @tip/moderation build
+
+      - run: pnpm typecheck
+
+      - run: pnpm test
+
+  build-and-push:
+    name: Build & push ${{ matrix.name }}
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        include:
+          - name: api
+            target: api
+            app_arg: api
+          - name: indexer
+            target: indexer
+            app_arg: indexer
+          - name: migrator
+            target: migrator
+            app_arg: api
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compute lowercase image name
+        id: image
+        run: |
+          owner="${GITHUB_REPOSITORY_OWNER,,}"
+          repo="$(basename "${GITHUB_REPOSITORY,,}")"
+          echo "owner=${owner}" >> "$GITHUB_OUTPUT"
+          echo "repo=${repo}" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          target: ${{ matrix.target }}
+          build-args: |
+            APP=${{ matrix.app_arg }}
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ steps.image.outputs.owner }}/${{ steps.image.outputs.repo }}-${{ matrix.name }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ steps.image.outputs.owner }}/${{ steps.image.outputs.repo }}-${{ matrix.name }}:production
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.name }}
+
+  deploy:
+    name: Deploy to OCI server
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compute lowercase image name
+        id: image
+        run: |
+          owner="${GITHUB_REPOSITORY_OWNER,,}"
+          repo="$(basename "${GITHUB_REPOSITORY,,}")"
+          echo "owner=${owner}" >> "$GITHUB_OUTPUT"
+          echo "repo=${repo}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up deploy SSH key
+        run: |
+          mkdir -p ~/.ssh
+          umask 077
+          printf '%s\n' "${{ secrets.OCI_SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "${{ secrets.OCI_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+
+      # Never syncs .env -- only compose.yml and the deploy scripts. rsync
+      # --delete is scoped to deploy/scripts/ specifically so removing a
+      # script from the repo removes it from the server too, without ever
+      # touching anything else under /opt/tagwise (in particular .env).
+      - name: Sync compose file and deploy scripts (never .env)
+        run: |
+          ssh -i ~/.ssh/deploy_key "${{ secrets.OCI_SSH_USER }}@${{ secrets.OCI_HOST }}" \
+            "mkdir -p /opt/tagwise/deploy/scripts"
+          rsync -az -e "ssh -i ~/.ssh/deploy_key" \
+            deploy/compose.yml \
+            "${{ secrets.OCI_SSH_USER }}@${{ secrets.OCI_HOST }}:/opt/tagwise/compose.yml"
+          rsync -az --delete -e "ssh -i ~/.ssh/deploy_key" \
+            deploy/scripts/ \
+            "${{ secrets.OCI_SSH_USER }}@${{ secrets.OCI_HOST }}:/opt/tagwise/deploy/scripts/"
+
+      - name: Run deploy.sh on the server
+        run: |
+          ssh -i ~/.ssh/deploy_key "${{ secrets.OCI_SSH_USER }}@${{ secrets.OCI_HOST }}" \
+            "IMAGE_OWNER='${{ steps.image.outputs.owner }}' REPO_NAME='${{ steps.image.outputs.repo }}' IMAGE_TAG='${{ github.sha }}' bash /opt/tagwise/deploy/scripts/deploy.sh"
+
+      - name: Clean up SSH key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key

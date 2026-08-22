@@ -93,6 +93,20 @@ COPY packages/sdk/package.json packages/sdk/package.json
 RUN pnpm install --frozen-lockfile --prod --filter "@tip/${APP}..."
 
 # ==============================================================================
+# migrator: runs `prisma migrate deploy` against the real database. Built
+# straight from `builder` because migrating (unlike running the app) needs
+# the `prisma` CLI and packages/db/prisma/{schema.prisma,migrations/} --
+# deliberately absent from the api/indexer runtime images to keep those
+# minimal. Not part of the api/indexer request path; run on demand, e.g.
+# `docker compose --profile tools run --rm migrator` on the target server,
+# inside the same Docker network as postgres so no public DB port is
+# needed. Never invoked automatically by the deploy workflow -- see
+# deploy/README.md.
+# ==============================================================================
+FROM builder AS migrator
+CMD ["pnpm", "--filter", "@tip/db", "migrate"]
+
+# ==============================================================================
 # runtime-base: shared runtime filesystem for the workspace packages every
 # app needs (@tip/core, @tip/db, @tip/moderation) -- compiled dist/ output
 # only, no .ts sources, no tests, no prisma/schema.prisma (schema.prisma is a
@@ -122,6 +136,14 @@ COPY --from=builder --chown=node:node /app/packages/moderation/dist ./packages/m
 # ==============================================================================
 # indexer: adds only @tip/indexer's own dependencies and compiled output.
 # Background worker -- no HTTP port, so no EXPOSE.
+#
+# Deliberately no HEALTHCHECK: apps/indexer exposes no HTTP surface and no
+# liveness signal of its own (no heartbeat file, no port), and adding one
+# would mean changing application source, which is out of scope here.
+# Docker's own exit-code detection plus `restart: unless-stopped` (see
+# deploy/compose.yml) is the operative safety net -- a crash gets the
+# process restarted; the existing graceful SIGTERM handling in
+# apps/indexer/src/main.ts is preserved unchanged.
 # ==============================================================================
 FROM runtime-base AS indexer
 
@@ -145,4 +167,15 @@ COPY --from=builder --chown=node:node /app/apps/api/dist ./apps/api/dist
 
 USER node
 EXPOSE 3000
+
+# GET /health always answers HTTP 200 -- Postgres/Redis reachability is
+# reported per-dependency in the body, independently of each other, so a
+# down dependency never fails the check for the other one (see
+# apps/api/src/health/health.controller.ts). A healthcheck that only looked
+# at the status code would treat a fully degraded API as healthy, so this
+# parses the body instead. Uses Node's built-in fetch (no curl/wget added
+# to the image) and exec-form CMD, matching the rest of this file.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+  CMD ["node", "-e", "fetch('http://127.0.0.1:3000/health').then(r=>r.json()).then(j=>{if(j.db!=='reachable'||j.redis!=='reachable')throw new Error('degraded')}).catch(()=>process.exit(1))"]
+
 CMD ["node", "apps/api/dist/main.js"]
