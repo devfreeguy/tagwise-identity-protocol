@@ -8,7 +8,7 @@ host's existing Caddy install handling TLS/routing. This is separate from
 
 ## Immutable infrastructure -- read this first
 
-`infra-postgres` and `infra-redis` are pre-existing containers holding
+`postgres` and `redis` are pre-existing containers holding
 real production data, running independently of everything in this
 directory. **Nothing in this repository creates, recreates, renames,
 stops, removes, or reconfigures them, their volumes, their network, their
@@ -37,7 +37,7 @@ GitHub Actions (.github/workflows/deploy-production.yml)
      verifies api health and indexer running state
         |
         v
-OCI server: /opt/tagwise/
+OCI server: /opt/apps/tagwise/
   compose.yml          <- synced from deploy/compose.yml every deploy
   .env                 <- created once by hand, never touched by CI
   deploy/scripts/*.sh  <- synced every deploy
@@ -45,10 +45,10 @@ OCI server: /opt/tagwise/
         v
   docker compose (project "tagwise", services: api, indexer, migrator)
     api, indexer  <-- recreated on every deploy, attached to the
-                       pre-existing `infra` network (external: true)
+                       pre-existing `alpha` network (external: true)
         |                                    |
         v                                    v
-Caddy (host) --TLS--> 127.0.0.1:3000    infra-postgres, infra-redis
+Caddy (host) --TLS--> 127.0.0.1:3000    postgres, redis
   (unchanged; not part of this repo)      (external, untouched;
   for api.tagwise.me and tip.tagwise.me    already running, already
                                             holding real data)
@@ -75,26 +75,26 @@ Actions secret -- see "first-time server setup" below.
 
 Nothing else is a GitHub secret. Application secrets (`DATABASE_URL`,
 `JWT_SECRET`, `RPC_HTTP_URL`, `HELIUS_API_KEY`, etc.) live only in the
-server's `/opt/tagwise/.env`, which GitHub Actions never reads or writes.
+server's `/opt/apps/tagwise/.env`, which GitHub Actions never reads or writes.
 
 ## Connecting to the existing Postgres/Redis
 
 **Confirmed via production inspection** (`docker inspect tip-api` /
-`infra-postgres` / `infra-redis`), not assumed:
+`postgres` / `redis`), not assumed:
 
-- `infra-postgres` and `infra-redis` both run on a Docker network named
-  `infra`; `tip-api`/`tip-indexer` reach them by container-name DNS on
+- `postgres` and `redis` both run on a Docker network named
+  `alpha`; `tip-api`/`tip-indexer` reach them by container-name DNS on
   that network, not a published host port.
-- `DATABASE_URL` is `postgresql://tip_user:<password>@infra-postgres:5432/tip_db`.
-- `REDIS_URL` is `redis://:<password>@infra-redis:6379`.
+- `DATABASE_URL` is `postgresql://tip_user:<password>@postgres:5432/tip_db`.
+- `REDIS_URL` is `redis://:<password>@redis:6379`.
 - `REDIS_KEY_PREFIX` is `tip:`.
 
 The passwords are real production credentials and were deliberately not
 captured anywhere in this repository -- `deploy/.env.example` has the
 confirmed host/port/user/database shape above with only the password
 portion left as a placeholder; fill that in directly on the server, in
-`/opt/tagwise/.env` only. `EXISTING_INFRA_NETWORK` in `.env.example` is
-already set to `infra` for the same reason (not a secret, so safe to
+`/opt/apps/tagwise/.env` only. `EXISTING_INFRA_NETWORK` in `.env.example` is
+already set to `alpha` for the same reason (not a secret, so safe to
 record directly).
 
 If this server is ever re-provisioned, or you're setting up a second
@@ -103,23 +103,23 @@ environment, re-derive these instead of reusing the values above:
 ```
 docker inspect tip-api --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -E 'DATABASE_URL|REDIS_URL|REDIS_KEY_PREFIX'
 docker inspect tip-api --format '{{json .NetworkSettings.Networks}}'
-docker inspect infra-postgres --format '{{json .NetworkSettings.Networks}}'
-docker inspect infra-redis --format '{{json .NetworkSettings.Networks}}'
+docker inspect postgres --format '{{json .NetworkSettings.Networks}}'
+docker inspect redis --format '{{json .NetworkSettings.Networks}}'
 ```
 
 Two possible shapes, depending on what that shows:
 
-- **Shared Docker network** (most likely, if `infra-postgres`/`infra-redis`
-  publish no host port): `tip-api`, `tip-indexer`, `infra-postgres`, and
-  `infra-redis` are all attached to the same user-defined bridge network,
+- **Shared Docker network** (most likely, if `postgres`/`redis`
+  publish no host port): `tip-api`, `tip-indexer`, `postgres`, and
+  `redis` are all attached to the same user-defined bridge network,
   and `DATABASE_URL`/`REDIS_URL` use the container names
-  (`infra-postgres`, `infra-redis`) as hostnames -- Docker's embedded DNS
+  (`postgres`, `redis`) as hostnames -- Docker's embedded DNS
   resolves those on a user-defined network. Set
-  `EXISTING_INFRA_NETWORK` in `/opt/tagwise/.env` to that network's name
-  (the key `docker inspect infra-postgres`'s `NetworkSettings.Networks`
-  prints), and `deploy/compose.yml`'s `networks: infra: external: true`
+  `EXISTING_INFRA_NETWORK` in `/opt/apps/tagwise/.env` to that network's name
+  (the key `docker inspect postgres`'s `NetworkSettings.Networks`
+  prints), and `deploy/compose.yml`'s `networks: alpha: external: true`
   block attaches `api`/`indexer` to it unchanged.
-- **Published host port**: `infra-postgres`/`infra-redis` publish a port
+- **Published host port**: `postgres`/`redis` publish a port
   to the host (or the loopback interface), and `DATABASE_URL`/`REDIS_URL`
   point at `localhost`/`127.0.0.1`/a host IP instead of a container name.
   In this case, remove the `networks:` block from `deploy/compose.yml`'s
@@ -129,7 +129,7 @@ Two possible shapes, depending on what that shows:
 
 Either way: copy `DATABASE_URL`, `REDIS_URL`, and `REDIS_KEY_PREFIX`
 **verbatim** from `tip-api`'s current environment into
-`/opt/tagwise/.env` -- don't reconstruct them. This guarantees the new
+`/opt/apps/tagwise/.env` -- don't reconstruct them. This guarantees the new
 containers reach the exact same database and cache instance the old ones
 did, with the exact same behavior.
 
@@ -137,7 +137,7 @@ did, with the exact same behavior.
 
 1. **Install Docker** if not already present, and confirm
    `docker compose version` works. Also `apt-get install -y rsync curl`.
-   (Almost certainly already done, since `tip-api`/`infra-postgres`/etc.
+   (Almost certainly already done, since `tip-api`/`postgres`/etc.
    are already running -- skip if so.)
 
 2. **Create a dedicated deploy user** (or reuse an existing one) that is a
@@ -157,11 +157,11 @@ did, with the exact same behavior.
 
 3. **Create the deploy directory:**
    ```
-   mkdir -p /opt/tagwise/deploy/scripts
-   chown -R deploy:deploy /opt/tagwise
+   mkdir -p /opt/apps/tagwise/deploy/scripts
+   chown -R deploy:deploy /opt/apps/tagwise
    ```
 
-4. **Create `/opt/tagwise/.env`** from `deploy/.env.example` in this repo
+4. **Create `/opt/apps/tagwise/.env`** from `deploy/.env.example` in this repo
    (copy its contents over SSH or SFTP, don't clone the whole repo onto the
    server for this). `EXISTING_INFRA_NETWORK` and `REDIS_KEY_PREFIX` are
    already filled in with confirmed values; fill in the password portion
@@ -182,13 +182,13 @@ did, with the exact same behavior.
    This login persists in the deploy user's Docker config; it's a one-time
    step, not something GitHub Actions repeats on every deploy.
 
-6. **Copy `deploy/compose.yml`** from this repo to `/opt/tagwise/compose.yml`
+6. **Copy `deploy/compose.yml`** from this repo to `/opt/apps/tagwise/compose.yml`
    once by hand, so the very first deploy has something to work with.
    Every subsequent push to `main` re-syncs it automatically.
 
 7. Trigger a deploy (push to `main`) and confirm `tip-api`/
    `tip-indexer` come up healthy per "Inspecting logs and health" below,
-   while `infra-postgres`/`infra-redis`/Caddy remain untouched (`docker ps`
+   while `postgres`/`redis`/Caddy remain untouched (`docker ps`
    shows the same container IDs for those two, unchanged uptime).
 
 ## How deployment works
@@ -225,7 +225,7 @@ did, with the exact same behavior.
      fails, after printing the last 100 lines of the relevant container's
      logs
 
-Nothing in this sequence names `infra-postgres`, `infra-redis`, or Caddy.
+Nothing in this sequence names `postgres`, `redis`, or Caddy.
 `apps/indexer`'s existing graceful `SIGTERM` handling (abort subscription,
 stop cron, disconnect Postgres, then Redis) is preserved unchanged;
 `--force-recreate` sends `SIGTERM` and waits up to `stop_grace_period: 65s`
@@ -239,7 +239,7 @@ like a normal deploy:
 
 ```
 ssh <user>@<host>
-cd /opt/tagwise
+cd /opt/apps/tagwise
 IMAGE_OWNER=<owner> REPO_NAME=<repo> IMAGE_TAG=<previous-good-sha> \
   bash deploy/scripts/deploy.sh
 ```
@@ -247,24 +247,24 @@ IMAGE_OWNER=<owner> REPO_NAME=<repo> IMAGE_TAG=<previous-good-sha> \
 Find `<previous-good-sha>` from `git log main` or the GHCR package
 versions page. This runs the exact same pull/recreate/health-gate sequence
 as a normal deploy, just pointed at an older tag -- there is no separate
-"rollback mode," and it never touches `infra-postgres`/`infra-redis`
+"rollback mode," and it never touches `postgres`/`redis`
 either, same as any other run of this script.
 
 ## Inspecting logs and health
 
 ```
 # tip-api / tip-indexer status (includes Docker-level HEALTHCHECK state for api)
-docker compose -f /opt/tagwise/compose.yml ps
+docker compose -f /opt/apps/tagwise/compose.yml ps
 
 # tip-api / tip-indexer logs
-docker compose -f /opt/tagwise/compose.yml logs -f api
-docker compose -f /opt/tagwise/compose.yml logs -f indexer
+docker compose -f /opt/apps/tagwise/compose.yml logs -f api
+docker compose -f /opt/apps/tagwise/compose.yml logs -f indexer
 
-# infra-postgres / infra-redis are NOT in this compose file -- inspect them
+# postgres / redis are NOT in this compose file -- inspect them
 # with plain docker commands, same as before this pipeline existed:
-docker logs -f infra-postgres
-docker logs -f infra-redis
-docker ps --filter name=infra-postgres --filter name=infra-redis
+docker logs -f postgres
+docker logs -f redis
+docker ps --filter name=postgres --filter name=redis
 
 # API health, from the server itself (127.0.0.1:3000 is not public)
 curl -s http://127.0.0.1:3000/health | jq
@@ -287,16 +287,16 @@ runtime images deliberately don't carry. A separate `migrator` image (built
 directory) is built and pushed alongside `api`/`indexer` on every deploy,
 but is **never run automatically**, and never touches anything but the
 existing database's schema via the same `DATABASE_URL` `tip-api` already
-uses. Run it deliberately, after confirming `/opt/tagwise/.env`'s
+uses. Run it deliberately, after confirming `/opt/apps/tagwise/.env`'s
 `DATABASE_URL` is correct:
 
 ```
-cd /opt/tagwise
+cd /opt/apps/tagwise
 IMAGE_OWNER=<owner> REPO_NAME=<repo> IMAGE_TAG=<sha> docker compose -f compose.yml --env-file .env --profile tools pull migrator
 IMAGE_OWNER=<owner> REPO_NAME=<repo> IMAGE_TAG=<sha> docker compose -f compose.yml --env-file .env --profile tools run --rm migrator
 ```
 
-This connects to the existing `infra-postgres` the same way `tip-api`
+This connects to the existing `postgres` the same way `tip-api`
 does (via `DATABASE_URL` and, if applicable, the `EXISTING_INFRA_NETWORK`
 attachment) -- it does not need a public database port. Per the project's
 existing migration policy (see `DEPLOYMENT.md`), this stays a deliberate,
