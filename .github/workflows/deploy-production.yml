@@ -160,22 +160,22 @@ jobs:
       # Never syncs .env -- only compose.yml and the deploy scripts. rsync
       # --delete is scoped to deploy/scripts/ specifically so removing a
       # script from the repo removes it from the server too, without ever
-      # touching anything else under /opt/tagwise (in particular .env).
+      # touching anything else under /opt/apps/tagwise (in particular .env).
       - name: Sync compose file and deploy scripts (never .env)
         run: |
           ssh -i ~/.ssh/deploy_key "${{ secrets.OCI_SSH_USER }}@${{ secrets.OCI_HOST }}" \
-            "mkdir -p /opt/tagwise/deploy/scripts"
+            "mkdir -p /opt/apps/tagwise/deploy/scripts"
           rsync -az -e "ssh -i ~/.ssh/deploy_key" \
             deploy/compose.yml \
-            "${{ secrets.OCI_SSH_USER }}@${{ secrets.OCI_HOST }}:/opt/tagwise/compose.yml"
+            "${{ secrets.OCI_SSH_USER }}@${{ secrets.OCI_HOST }}:/opt/apps/tagwise/compose.yml"
           rsync -az --delete -e "ssh -i ~/.ssh/deploy_key" \
             deploy/scripts/ \
-            "${{ secrets.OCI_SSH_USER }}@${{ secrets.OCI_HOST }}:/opt/tagwise/deploy/scripts/"
+            "${{ secrets.OCI_SSH_USER }}@${{ secrets.OCI_HOST }}:/opt/apps/tagwise/deploy/scripts/"
 
       - name: Run deploy.sh on the server
         run: |
           ssh -i ~/.ssh/deploy_key "${{ secrets.OCI_SSH_USER }}@${{ secrets.OCI_HOST }}" \
-            "IMAGE_OWNER='${{ steps.image.outputs.owner }}' REPO_NAME='${{ steps.image.outputs.repo }}' IMAGE_TAG='${{ github.sha }}' bash /opt/tagwise/deploy/scripts/deploy.sh"
+            "IMAGE_OWNER='${{ steps.image.outputs.owner }}' REPO_NAME='${{ steps.image.outputs.repo }}' IMAGE_TAG='${{ github.sha }}' bash /opt/apps/tagwise/deploy/scripts/deploy.sh"
 
       - name: Clean up SSH key
         if: always()

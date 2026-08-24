@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 # Deploys apps/api and apps/indexer on the OCI server. Run from
-# /opt/tagwise (or anywhere; it cds there itself), with IMAGE_OWNER,
+# /opt/apps/tagwise (or anywhere; it cds there itself), with IMAGE_OWNER,
 # REPO_NAME, and IMAGE_TAG set in the environment -- the GitHub Actions
 # deploy job sets these before invoking this script over SSH.
 #
 # Deliberately scoped to api/indexer only: never mentions postgres, redis,
 # or migrator, never runs `docker compose down`, and never runs a bare
 # `docker compose up` without a service list. deploy/compose.yml has no
-# postgres/redis service block at all -- infra-postgres and infra-redis are
+# postgres/redis service block at all -- postgres and redis are
 # external, pre-existing infrastructure this script cannot touch even by
 # accident. See deploy/compose.yml's header comment.
 set -euo pipefail
 
-# This script is deployed to /opt/tagwise/deploy/scripts/deploy.sh; compose.yml
-# and .env live two levels up, at /opt/tagwise/.
+# This script is deployed to /opt/apps/tagwise/deploy/scripts/deploy.sh; compose.yml
+# and .env live two levels up, at /opt/apps/tagwise/.
 cd "$(dirname "${BASH_SOURCE[0]}")/../.."
 
 : "${IMAGE_OWNER:?IMAGE_OWNER must be set}"
@@ -21,7 +21,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")/../.."
 : "${IMAGE_TAG:?IMAGE_TAG must be set}"
 
 if [ ! -f .env ]; then
-  echo "!! /opt/tagwise/.env is missing. Create it from deploy/.env.example" \
+  echo "!! /opt/apps/tagwise/.env is missing. Create it from deploy/.env.example" \
        "before the first deploy (see deploy/README.md)." >&2
   exit 1
 fi
@@ -41,8 +41,8 @@ docker compose -f compose.yml --env-file .env pull api indexer
 # adoption; it is also exactly what every subsequent deploy does, so this
 # is not a special first-run path. Named removal only, nothing broader:
 # never `docker compose down`, never `--remove-orphans`, and this can only
-# ever affect these two exact container names -- never infra-postgres,
-# infra-redis, or anything else on the host. Runs only after the pull
+# ever affect these two exact container names -- never postgres,
+# redis, or anything else on the host. Runs only after the pull
 # above succeeds (set -euo pipefail stops the script at the pull if it
 # fails, before this line is ever reached).
 docker rm -f tip-api tip-indexer
