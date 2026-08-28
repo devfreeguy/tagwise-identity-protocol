@@ -10,7 +10,6 @@ import { Logo } from "../ui/logo";
 import { MobileNav } from "./MobileNav";
 import { NAV_LINKS, type NavGroup } from "./nav-data";
 import { NavPopover } from "./NavPopover";
-import { ThemeToggle } from "../ui/ThemeToggle";
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -114,8 +113,8 @@ export function Navbar() {
 
         {/* Right CTA Button (Matching Wireframe 1 exactly) */}
         <div className="hidden md:flex items-center gap-2 sm:gap-3 shrink-0">
-          <ThemeToggle />
-          <Link href="/developer">
+          {/* <ThemeToggle /> */}
+          <Link href="/developers">
             <Button variant="primary">Start Building</Button>
           </Link>
         </div>

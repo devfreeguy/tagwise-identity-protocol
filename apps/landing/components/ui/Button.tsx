@@ -14,6 +14,7 @@ export const buttonStyles = tv({
       primary: "bg-foreground text-background hover:bg-foreground/90 border-transparent",
       secondary: "bg-surface hover:bg-surface-secondary text-foreground border-transparent",
       tertiary: "border border-border/80 dark:border-white/20 hover:border-foreground/40 bg-surface/40 dark:bg-white/5 hover:bg-surface dark:hover:bg-white/10 text-foreground",
+      outline: "border border-border/80 bg-transparent hover:bg-surface text-foreground",
     },
     size: {
       sm: "px-6 py-2.5 h-auto text-[10px]",
@@ -34,11 +35,7 @@ export interface ButtonProps
   extends
     Omit<HeroUIButtonProps, "variant" | "className">,
     VariantProps<typeof buttonStyles> {
-  className?: string;
-  as?: React.ElementType | string;
-  href?: string;
-  target?: string;
-  rel?: string;
+  className?: string | undefined;
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(

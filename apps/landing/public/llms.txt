@@ -26,12 +26,12 @@ Tagwise Identity Protocol (TIP) is an open-source identity resolution protocol b
 
 ## Documentation
 
-- [Docs Home](https://docs.tagwise.me/docs): Getting started with the Tagwise Identity Protocol
-- [Quickstart](https://docs.tagwise.me/docs/quickstart): Get up and running in minutes
-- [Concepts](https://docs.tagwise.me/docs/concepts): Architecture, source of truth, PDAs and accounts, tag rules, security and auth
-- [Integration Guides](https://docs.tagwise.me/docs/integration-guides): Registering tags, managing profiles, wallet auth, on-chain resolution, payment links
-- [SDK Reference](https://docs.tagwise.me/docs/sdk-reference): TipClient, on-chain resolution, tag utilities, types and models, errors
-- [API Reference](https://docs.tagwise.me/docs/api-reference): REST API endpoints for resolve, identity, availability, search, QR, payment links, registration, and auth
+- [Docs Home](https://docs.tagwise.me): Getting started with the Tagwise Identity Protocol
+- [Quickstart](https://docs.tagwise.me/quickstart): Get up and running in minutes
+- [Concepts](https://docs.tagwise.me/concepts): Architecture, source of truth, PDAs and accounts, tag rules, security and auth
+- [Integration Guides](https://docs.tagwise.me/integration-guides): Registering tags, managing profiles, wallet auth, on-chain resolution, payment links
+- [SDK Reference](https://docs.tagwise.me/sdk-reference): TipClient, on-chain resolution, tag utilities, types and models, errors
+- [API Reference](https://docs.tagwise.me/api-reference): REST API endpoints for resolve, identity, availability, search, QR, payment links, registration, and auth
 
 ## External Links
 

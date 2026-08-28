@@ -31,7 +31,10 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
             {NAV_LINKS.map((link) => {
               if (link.isGroup && link.group) {
                 return (
-                  <div key={link.label} className="border-b border-border/40 pb-2 last:border-none space-y-1">
+                  <div
+                    key={link.label}
+                    className="border-b border-border/40 pb-2 last:border-none space-y-1"
+                  >
                     <div className="px-3 py-2 text-[10px] font-mono uppercase tracking-widest text-[#8B98C2]">
                       {link.label}
                     </div>
@@ -54,7 +57,9 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
                           href={item.href}
                           onClick={onClose}
                           className={`w-full flex items-center justify-between pl-5 pr-3 py-2 text-sm font-semibold hover:bg-surface-secondary/50 transition-colors rounded-lg ${
-                            isActive ? "bg-foreground text-background" : "text-foreground"
+                            isActive
+                              ? "bg-foreground text-background"
+                              : "text-foreground"
                           }`}
                         >
                           <span>{item.title}</span>
@@ -86,7 +91,9 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
                       href={link.href!}
                       onClick={onClose}
                       className={`w-full flex items-center justify-between px-3 py-2 text-base font-semibold hover:bg-surface-secondary/50 transition-colors rounded-lg ${
-                        isActive ? "bg-foreground text-background" : "text-foreground"
+                        isActive
+                          ? "bg-foreground text-background"
+                          : "text-foreground"
                       }`}
                     >
                       <span>{link.label}</span>
@@ -109,13 +116,9 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
             </a>
             <div className="flex items-center gap-2">
               <ThemeToggle />
-              <Button
-                as="a"
-                href="#start-building"
-                onClick={onClose}
-              >
-                Start Building
-              </Button>
+              <Link href="#start-building" onClick={onClose}>
+                <Button>Start Building</Button>
+              </Link>
             </div>
           </div>
         </motion.div>

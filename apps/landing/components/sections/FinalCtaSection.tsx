@@ -1,9 +1,10 @@
 "use client";
 
 import { IconArrowRight, IconBrandGithub } from "@tabler/icons-react";
-import { Button } from "@heroui/react";
+import { Button } from "../ui/Button";
 import { SectionWrapper } from "../layout/SectionWrapper";
 import { LINKS } from "../../lib/constants";
+import Link from "next/link";
 
 export function FinalCtaSection() {
   return (
@@ -28,40 +29,22 @@ export function FinalCtaSection() {
               </p>
 
               <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
-                <Button
-                  render={({ ref, ...props }: any) => (
-                    <a
-                      ref={ref}
-                      {...props}
-                      href={LINKS.DOCS}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                <Link href={LINKS.DOCS} target="_blank" rel="noopener noreferrer">
+                  <Button className="group font-mono font-semibold uppercase tracking-widest text-[11px] px-8 py-4 h-auto bg-[#fcfcfe] text-[#060607] hover:bg-[#fcfcfe]/90 transition-all duration-300 rounded-full">
+                    <span>Read Documentation</span>
+                    <IconArrowRight
+                      size={16}
+                      className="group-hover:translate-x-1 transition-transform duration-300"
                     />
-                  )}
-                  className="group font-mono font-semibold uppercase tracking-widest text-[11px] px-8 py-4 h-auto bg-[#fcfcfe] text-[#060607] hover:bg-[#fcfcfe]/90 transition-all duration-300 rounded-full"
-                >
-                  <span>Read Documentation</span>
-                  <IconArrowRight
-                    size={16}
-                    className="group-hover:translate-x-1 transition-transform duration-300"
-                  />
-                </Button>
+                  </Button>
+                </Link>
 
-                <Button
-                  render={({ ref, ...props }: any) => (
-                    <a
-                      ref={ref}
-                      {...props}
-                      href={LINKS.GITHUB}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    />
-                  )}
-                  className="group font-mono font-semibold uppercase tracking-widest text-[11px] px-8 py-4 h-auto border border-border/80 dark:border-white/20 hover:border-[#fcfcfe]/40 bg-white/5 hover:bg-white/10 text-[#fcfcfe] transition-all duration-300 rounded-full"
-                >
-                  <IconBrandGithub size={16} />
-                  <span>Explore SDK</span>
-                </Button>
+                <Link href={LINKS.GITHUB} target="_blank" rel="noopener noreferrer">
+                  <Button className="group font-mono font-semibold uppercase tracking-widest text-[11px] px-8 py-4 h-auto border border-border/80 dark:border-white/20 hover:border-[#fcfcfe]/40 bg-white/5 hover:bg-white/10 text-[#fcfcfe] transition-all duration-300 rounded-full">
+                    <IconBrandGithub size={16} />
+                    <span>Explore SDK</span>
+                  </Button>
+                </Link>
               </div>
             </div>
 

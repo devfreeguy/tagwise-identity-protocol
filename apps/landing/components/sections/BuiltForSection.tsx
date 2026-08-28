@@ -10,6 +10,7 @@ import {
 } from "@tabler/icons-react";
 import { Button } from "../ui/Button";
 import { LINKS } from "../../lib/constants";
+import Link from "next/link";
 
 export function BuiltForSection() {
   const audiences = [
@@ -19,8 +20,8 @@ export function BuiltForSection() {
       headline: "Zero-Friction Crypto Payments",
       description:
         "Replace long wallet addresses with simple @tags for faster, safer crypto payments. Verify recipients instantly and eliminate costly sending mistakes.",
-      linkText: "Explore Wallet SDK →",
-      href: `${LINKS.DOCS}/wallets`,
+      linkText: "Explore SDK →",
+      href: `${LINKS.DOCS}/sdk-reference`,
     },
     {
       title: "Exchanges",
@@ -29,7 +30,7 @@ export function BuiltForSection() {
       description:
         "Let customers withdraw funds to @tags instead of copying wallet addresses. Reduce failed withdrawals and improve the overall user experience.",
       linkText: "Explore Exchange API →",
-      href: `${LINKS.DOCS}/exchanges`,
+      href: `${LINKS.DOCS}/quickstart`,
     },
     {
       title: "Merchants",
@@ -38,7 +39,7 @@ export function BuiltForSection() {
       description:
         "Create simple, memorable payment links that customers can trust. Accept crypto payments effortlessly across the Solana ecosystem.",
       linkText: "Explore Merchant Solutions →",
-      href: `${LINKS.DOCS}/merchants`,
+      href: `${LINKS.DOCS}/integration-guides`,
     },
     {
       title: "Developers",
@@ -86,10 +87,13 @@ export function BuiltForSection() {
                   <p className="text-muted-foreground group-hover:text-white/90 text-sm sm:text-base leading-relaxed transition-colors duration-300 max-w-md">
                     {item.description}
                   </p>
-                  <div className="inline-flex items-center gap-2 text-sm font-semibold text-[#7928CA] group-hover:text-white transition-colors duration-300 pt-2"></div>
-                  <a href={item.href} target="_blank" rel="noopener noreferrer">
+                  <Link
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <Button variant="tertiary">{item.linkText}</Button>
-                  </a>
+                  </Link>
                 </div>
               </div>
             );

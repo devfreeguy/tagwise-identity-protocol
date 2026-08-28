@@ -26,6 +26,7 @@
   --focus: oklch(52.00% 0.2000 282.61);
   --foreground: oklch(21.03% 0.0032 282.61);
   --muted: oklch(55.17% 0.0064 282.61);
+  --muted-foreground: oklch(46.00% 0.0058 282.61);
   --overlay: oklch(100.00% 0.0010 282.61);
   --overlay-foreground: oklch(21.03% 0.0032 282.61);
   --scrollbar: oklch(87.10% 0.0032 282.61);
@@ -71,6 +72,7 @@
   --focus: oklch(52.00% 0.2000 282.61);
   --foreground: oklch(99.11% 0.0032 282.61);
   --muted: oklch(70.50% 0.0064 282.61);
+  --muted-foreground: oklch(63.00% 0.0058 282.61);
   --overlay: oklch(21.03% 0.0064 282.61);
   --overlay-foreground: oklch(99.11% 0.0032 282.61);
   --scrollbar: oklch(70.50% 0.0032 282.61);
