@@ -23,7 +23,7 @@ export function ComingSoon({ title }: ComingSoonProps) {
             We are working hard to finalize this page. Please check back later for updates.
           </p>
           <Link href="/">
-            <Button variant="tertiary" as="span">
+            <Button variant="tertiary">
               Back to Home
             </Button>
           </Link>

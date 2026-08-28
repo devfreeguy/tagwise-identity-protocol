@@ -2,6 +2,7 @@
 
 import { cn } from "@heroui/react";
 import { LogoIcon } from "./LogoIcon";
+import Link from "next/link";
 
 interface LogoProps {
   showName?: boolean;
@@ -27,9 +28,9 @@ export function Logo({
   };
 
   return (
-    <a
-      href="#"
-      className={cn("flex items-center gap-3 group shrink-0", className)}
+    <Link
+      href="/"
+      className={cn("flex items-center gap-3 group shrink-0 w-fit", className)}
     >
       <div
         className={cn(
@@ -58,6 +59,6 @@ export function Logo({
           Tagwise
         </span>
       </div>
-    </a>
+    </Link>
   );
 }

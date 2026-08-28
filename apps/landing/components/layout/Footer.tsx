@@ -6,10 +6,12 @@ import {
   IconBrandNpm,
   IconExternalLink,
 } from "@tabler/icons-react";
-import { Button } from "@heroui/react";
+import { Button } from "../ui/Button";
 import { Logo } from "../ui/logo";
 import { SectionWrapper } from "./SectionWrapper";
 import { NETWORK_NAME, LINKS } from "../../lib/constants";
+import { ThemeToggle } from "../ui/ThemeToggle";
+import Link from "next/link";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -69,57 +71,36 @@ export function Footer() {
             </div>
 
             <div className="flex items-center gap-3 pt-12">
-              <Button
-                isIconOnly
-                variant="outline"
-                render={({ ref, ...props }: any) => (
-                  <a
-                    ref={ref}
-                    {...props}
-                    href={LINKS.GITHUB}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="GitHub"
-                  />
-                )}
-                className="w-11 h-11 bg-surface-secondary border-border/80 text-muted-foreground hover:bg-linear-to-br hover:from-[#7928CA] hover:to-[#9F55FF] hover:border-transparent hover:text-white transition-all duration-300"
-              >
-                <IconBrandGithub size={18} />
-              </Button>
-              <Button
-                isIconOnly
-                variant="outline"
-                render={({ ref, ...props }: any) => (
-                  <a
-                    ref={ref}
-                    {...props}
-                    href={LINKS.TWITTER}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="X (Twitter)"
-                  />
-                )}
-                className="w-11 h-11 bg-surface-secondary border-border/80 text-muted-foreground hover:bg-linear-to-br hover:from-[#7928CA] hover:to-[#9F55FF] hover:border-transparent hover:text-white transition-all duration-300"
-              >
-                <IconBrandX size={18} />
-              </Button>
-              <Button
-                isIconOnly
-                variant="outline"
-                render={({ ref, ...props }: any) => (
-                  <a
-                    ref={ref}
-                    {...props}
-                    href={LINKS.NPM}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="npm package"
-                  />
-                )}
-                className="w-11 h-11 bg-surface-secondary border-border/80 text-muted-foreground hover:bg-linear-to-br hover:from-[#7928CA] hover:to-[#9F55FF] hover:border-transparent hover:text-white transition-all duration-300"
-              >
-                <IconBrandNpm size={18} />
-              </Button>
+              <Link href={LINKS.GITHUB} target="_blank" rel="noopener noreferrer">
+                <Button
+                  isIconOnly
+                  variant="outline"
+                  aria-label="GitHub"
+                  className="w-11 h-11 bg-surface-secondary border-border/80 text-muted-foreground hover:bg-linear-to-br hover:from-[#7928CA] hover:to-[#9F55FF] hover:border-transparent hover:text-white transition-all duration-300"
+                >
+                  <IconBrandGithub size={18} />
+                </Button>
+              </Link>
+              <Link href={LINKS.TWITTER} target="_blank" rel="noopener noreferrer">
+                <Button
+                  isIconOnly
+                  variant="outline"
+                  aria-label="X (Twitter)"
+                  className="w-11 h-11 bg-surface-secondary border-border/80 text-muted-foreground hover:bg-linear-to-br hover:from-[#7928CA] hover:to-[#9F55FF] hover:border-transparent hover:text-white transition-all duration-300"
+                >
+                  <IconBrandX size={18} />
+                </Button>
+              </Link>
+              <Link href={LINKS.NPM} target="_blank" rel="noopener noreferrer">
+                <Button
+                  isIconOnly
+                  variant="outline"
+                  aria-label="npm package"
+                  className="w-11 h-11 bg-surface-secondary border-border/80 text-muted-foreground hover:bg-linear-to-br hover:from-[#7928CA] hover:to-[#9F55FF] hover:border-transparent hover:text-white transition-all duration-300"
+                >
+                  <IconBrandNpm size={18} />
+                </Button>
+              </Link>
             </div>
           </div>
 
@@ -161,7 +142,7 @@ export function Footer() {
             &copy; {currentYear} Tagwise Identity Protocol.
           </p>
 
-          <div className="flex flex-wrap items-center gap-4 text-[10px] font-mono uppercase tracking-widest">
+          {/* <div className="w-full sm:w-auto flex flex-wrap items-center justify-between sm:justify-start gap-4 text-[10px] font-mono uppercase tracking-widest">
             <span className="flex items-center gap-2 text-emerald-400 bg-background border border-border/80 px-2.5 py-1.5 rounded-full">
               <span className="w-1.5 h-1.5 bg-emerald-400" />
               {NETWORK_NAME} Ready
@@ -171,7 +152,8 @@ export function Footer() {
               Open-Source Infrastructure
             </span>
 
-          </div>
+          </div> */}
+          <ThemeToggle />
         </div>
       </SectionWrapper>
     </footer>

@@ -10,6 +10,7 @@ import { SectionWrapper } from "../layout/SectionWrapper";
 import { Chip } from "@heroui/react";
 import { Button } from "../ui/Button";
 import { LINKS } from "../../lib/constants";
+import Link from "next/link";
 
 export function OpenSourceSection() {
   const packages = [
@@ -143,17 +144,16 @@ export function OpenSourceSection() {
 
         {/* CTA */}
         <div className="text-center pt-8">
-          <a
+          <Link
             href={LINKS.GITHUB}
             target="_blank"
             rel="noopener noreferrer"
-            // className="inline-flex items-center justify-center gap-2 bg-[#7928CA] text-white font-mono uppercase tracking-widest text-[11px] font-semibold px-8 py-4 hover:bg-[#6820B0] transition-colors border border-[#7928CA]"
           >
             <Button size="sm">
               <IconBrandGithub size={18} />
               <span>Explore Monorepo on GitHub</span>
             </Button>
-          </a>
+          </Link>
         </div>
       </SectionWrapper>
     </section>

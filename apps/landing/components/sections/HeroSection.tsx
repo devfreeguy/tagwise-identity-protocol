@@ -25,29 +25,13 @@ export function HeroSection() {
 
           {/* Action Buttons: View Docs & Read Whitepaper */}
           <div className="flex flex-wrap items-center gap-4 pt-3">
-            <Button
-              variant="primary"
-              render={({ ref, ...props }: any) => (
-                <a
-                  ref={ref}
-                  {...props}
-                  href={LINKS.DOCS}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                />
-              )}
-            >
-              View Docs
-            </Button>
+            <Link href={LINKS.DOCS} target="_blank" rel="noopener noreferrer">
+              <Button variant="primary">View Docs</Button>
+            </Link>
 
-            <Button
-              variant="tertiary"
-              render={({ ref, ...props }: any) => (
-                <Link ref={ref} {...props} href="/whitepaper" />
-              )}
-            >
-              Read Whitepaper
-            </Button>
+            <Link href="/whitepaper">
+              <Button variant="tertiary">Read Whitepaper</Button>
+            </Link>
           </div>
         </div>
       </div>
