@@ -4,6 +4,7 @@
 @import "../styles/animations.css";
 @import "../styles/gradients.css";
 @import "../styles/ambient-light.css";
+@import "../styles/document.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -26,6 +27,7 @@
   --color-surface: var(--surface);
   --color-surface-secondary: var(--surface-secondary);
   --color-surface-tertiary: var(--surface-tertiary);
+  --color-muted-foreground: var(--muted-foreground);
 
   --font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;

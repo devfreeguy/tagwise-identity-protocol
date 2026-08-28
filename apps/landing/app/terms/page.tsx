@@ -1,10 +1,20 @@
-import { ComingSoon } from "@/components/ui/ComingSoon";
+import type { Metadata } from "next";
 
-export const metadata = {
-  title: "Terms of Service | Tagwise Identity Protocol",
-  description: "Terms of service and usage conditions for the Tagwise Identity Protocol.",
-};
+import { IconGavel } from "@tabler/icons-react";
+
+import { LegalDocument } from "@/components/legal/LegalDocument";
+import { getLegalDoc } from "@/lib/legal";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { frontmatter } = await getLegalDoc("terms");
+
+  return {
+    title: frontmatter.title,
+    description: frontmatter.description,
+    alternates: { canonical: "/terms" },
+  };
+}
 
 export default function TermsPage() {
-  return <ComingSoon title="Terms of Service" />;
+  return <LegalDocument slug="terms" icon={IconGavel} />;
 }
