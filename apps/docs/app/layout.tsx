@@ -14,6 +14,7 @@ const figtree = Figtree({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://docs.tagwise.me"),
   title: {
     template: "%s | Tagwise Docs",
     default: "Tagwise Docs",
