@@ -30,7 +30,11 @@ export IMAGE_OWNER REPO_NAME IMAGE_TAG
 
 echo "==> Deploying api/indexer at tag ${IMAGE_TAG}"
 
+echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+
 docker compose -f compose.yml --env-file .env pull api indexer
+
+docker logout ghcr.io
 
 # tip-api/tip-indexer may still be the original manually-created containers
 # (not tracked as belonging to this Compose project), which `docker compose

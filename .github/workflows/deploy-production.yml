@@ -175,7 +175,7 @@ jobs:
       - name: Run deploy.sh on the server
         run: |
           ssh -i ~/.ssh/deploy_key "${{ secrets.OCI_SSH_USER }}@${{ secrets.OCI_HOST }}" \
-            "IMAGE_OWNER='${{ steps.image.outputs.owner }}' REPO_NAME='${{ steps.image.outputs.repo }}' IMAGE_TAG='${{ github.sha }}' bash /opt/apps/tagwise/deploy/scripts/deploy.sh"
+            "IMAGE_OWNER='${{ steps.image.outputs.owner }}' REPO_NAME='${{ steps.image.outputs.repo }}' IMAGE_TAG='${{ github.sha }}' GHCR_USER='${{ secrets.GHCR_USER }}' GHCR_TOKEN='${{ secrets.GHCR_TOKEN }}' bash /opt/apps/tagwise/deploy/scripts/deploy.sh"
 
       - name: Clean up SSH key
         if: always()
