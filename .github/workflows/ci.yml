@@ -1,0 +1,172 @@
+name: CI
+
+# Single pipeline covering both promotion hops:
+#
+#   feature/* --PR--> dev --auto PR--> staging --auto PR--> main
+#
+# `verify` and `build` run in two situations:
+#   - pull_request into dev: this is what lets the `dev` ruleset actually
+#     gate the merge button (required status checks must exist on the PR's
+#     head SHA *before* it merges).
+#   - push to dev or staging: this is the post-merge run. Its checks land
+#     on the exact SHA that becomes the head of the next auto-created
+#     promotion PR (dev's tip when opening dev->staging; staging's tip
+#     when opening staging->main), so that PR already shows passing
+#     checks without needing a third trigger.
+#
+# `promote` only runs on the push trigger, and only opens a PR -- it never
+# pushes to staging or main directly, so their rulesets (PR + required
+# approval) are always respected. main only ever advances via a human
+# merging the staging->main PR; deploy-production.yml's own
+# `push: branches: [main]` trigger picks it up from there.
+
+on:
+  pull_request:
+    branches: [dev]
+  push:
+    branches: [dev, staging]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  TURBO_TELEMETRY_DISABLED: "1"
+
+jobs:
+  verify:
+    name: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.15.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm --filter @tip/db build
+
+      - run: pnpm --filter @tip/core build
+
+      - run: pnpm --filter @tip/moderation build
+
+      # Scoped to @tip/api and @tip/indexer plus their workspace deps --
+      # not the unfiltered `pnpm typecheck`/`pnpm test`, which also cover
+      # apps/docs and apps/landing, unrelated to what this pipeline builds
+      # and deploys.
+      - run: pnpm exec turbo run typecheck --filter=@tip/api... --filter=@tip/indexer...
+
+      - run: pnpm exec turbo run test --filter=@tip/api... --filter=@tip/indexer...
+
+  build:
+    # Explicit name template so each matrix leg reports a stable, greppable
+    # check name: "build (api)", "build (indexer)", "build (migrator)".
+    name: build (${{ matrix.name }})
+    needs: verify
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: api
+            target: api
+            app_arg: api
+          - name: indexer
+            target: indexer
+            app_arg: indexer
+          - name: migrator
+            target: migrator
+            app_arg: api
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-qemu-action@v3
+
+      - uses: docker/setup-buildx-action@v3
+
+      # push: false -- this only proves the image builds on both platforms.
+      # Nothing is published to GHCR until deploy-production.yml's real
+      # build-and-push job runs against main. Shares its cache scope so
+      # that job gets a warm cache once this change is reviewed and merged.
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          target: ${{ matrix.target }}
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            APP=${{ matrix.app_arg }}
+          push: false
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.name }}
+
+  promote:
+    name: promote
+    needs: build
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine promotion target
+        id: target
+        run: |
+          case "${{ github.ref_name }}" in
+            dev) echo "base=staging" >> "$GITHUB_OUTPUT" ;;
+            staging) echo "base=main" >> "$GITHUB_OUTPUT" ;;
+            *)
+              echo "::error::unexpected ref '${{ github.ref_name }}' for the promote job"
+              exit 1
+              ;;
+          esac
+
+      - name: Refuse to promote if branches have diverged
+        env:
+          BASE: ${{ steps.target.outputs.base }}
+          HEAD: ${{ github.ref_name }}
+        run: |
+          git fetch origin "${HEAD}:refs/remotes/origin/${HEAD}" "${BASE}:refs/remotes/origin/${BASE}"
+          if ! git merge-base --is-ancestor "origin/${BASE}" "origin/${HEAD}"; then
+            echo "::error::${BASE} has commits that are not on ${HEAD} (diverged)." \
+                 "Refusing to open an automated promotion PR -- resolve this manually" \
+                 "(someone likely committed directly to ${BASE})."
+            exit 1
+          fi
+
+      - name: Create or reuse promotion PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE: ${{ steps.target.outputs.base }}
+          HEAD: ${{ github.ref_name }}
+        run: |
+          existing=$(gh pr list --repo "${{ github.repository }}" \
+            --base "${BASE}" --head "${HEAD}" --state open \
+            --json number --jq '.[0].number // empty')
+
+          if [ -n "${existing}" ]; then
+            echo "Promotion PR already open: #${existing}"
+            exit 0
+          fi
+
+          if [ -z "$(git rev-list "origin/${BASE}..origin/${HEAD}")" ]; then
+            echo "${HEAD} has no commits ahead of ${BASE}; nothing to promote."
+            exit 0
+          fi
+
+          gh pr create \
+            --repo "${{ github.repository }}" \
+            --base "${BASE}" --head "${HEAD}" \
+            --title "Promote ${HEAD} -> ${BASE} ($(date +%Y-%m-%d))" \
+            --body "Automated promotion PR, opened by ci.yml after verify+build passed on \`${HEAD}\` at ${{ github.sha }}."
