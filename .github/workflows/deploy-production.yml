@@ -6,10 +6,12 @@ name: Deploy production
 # containers. Postgres, Redis, and their volumes are never touched by this
 # workflow -- see deploy/compose.yml's header comment and deploy/README.md.
 #
-# Typecheck/test/build validation happens upstream in ci-dev.yml (on push
-# to `dev`, before code ever reaches staging or main), so this pipeline
-# does not repeat it -- by the time a change lands on `main`, it has
-# already passed that gate and been through review.
+# Typecheck/test/build validation happens upstream in ci.yml, both on the
+# dev PR gate and again on every push to dev/staging, so this pipeline does
+# not repeat it. A change only reaches `main` by a human merging the
+# staging->main promotion PR (opened automatically by ci.yml), so by the
+# time this workflow's push trigger fires, the change has already passed
+# CI twice and been through review at both the staging and main gates.
 
 on:
   push:
