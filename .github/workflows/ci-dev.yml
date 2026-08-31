@@ -1,0 +1,103 @@
+name: CI (dev)
+
+# Runs on every push to `dev`: typecheck, test, and a build-only (no
+# registry push) validation of the Docker images. If all of that passes,
+# `dev` is fast-forwarded onto `staging` for review. This never touches
+# `main` -- see deploy-production.yml, which builds/pushes real images and
+# deploys only once a reviewed change lands on main.
+
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+env:
+  TURBO_TELEMETRY_DISABLED: "1"
+
+jobs:
+  verify:
+    name: Typecheck & test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.15.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm --filter @tip/db build
+
+      - run: pnpm --filter @tip/core build
+
+      - run: pnpm --filter @tip/moderation build
+
+      # Same scope as deploy-production.yml previously used here: only the
+      # packages this pipeline actually builds and deploys, not the
+      # unrelated apps/docs and apps/landing.
+      - run: pnpm exec turbo run typecheck --filter=@tip/api... --filter=@tip/indexer...
+
+      - run: pnpm exec turbo run test --filter=@tip/api... --filter=@tip/indexer...
+
+  build:
+    name: Build ${{ matrix.name }} (no push)
+    needs: verify
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - name: api
+            target: api
+            app_arg: api
+          - name: indexer
+            target: indexer
+            app_arg: indexer
+          - name: migrator
+            target: migrator
+            app_arg: api
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-qemu-action@v3
+
+      - uses: docker/setup-buildx-action@v3
+
+      # push: false -- this only proves the image builds on both platforms.
+      # Nothing is published to GHCR until the real build-and-push job in
+      # deploy-production.yml runs against main. Shares its cache scope so
+      # that job gets a warm cache once this change is reviewed and merged.
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          target: ${{ matrix.target }}
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            APP=${{ matrix.app_arg }}
+          push: false
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.name }}
+
+  promote-to-staging:
+    name: Promote dev to staging
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+          fetch-depth: 0
+
+      # Fast-forward only: if staging has diverged (e.g. a reviewer pushed
+      # a fixup directly to it), this fails loudly instead of overwriting
+      # that work.
+      - name: Fast-forward staging to dev
+        run: git push origin HEAD:staging
