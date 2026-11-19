@@ -93,4 +93,20 @@ if [ "${indexer_state}" != "true" ]; then
 fi
 echo "==> tip-indexer running."
 
+# Record the now-verified image coordinates so later manual runs of compose
+# (restarts, reboots) use the last known-good tag. Reached only after both
+# health checks pass (set -e exits earlier otherwise), so a failed deploy
+# leaves image.env untouched. Atomic: temp file in the same directory
+# (same filesystem), chmod 600, then mv.
+tmp_env=$(mktemp ./image.env.XXXXXX)
+trap 'rm -f "${tmp_env}"' EXIT
+printf 'IMAGE_OWNER=%s\nREPO_NAME=%s\nIMAGE_TAG=%s\n' \
+  "${IMAGE_OWNER}" "${REPO_NAME}" "${IMAGE_TAG}" > "${tmp_env}"
+chmod 600 "${tmp_env}"
+mv -f "${tmp_env}" image.env
+trap - EXIT
+echo "==> Wrote image.env (tag ${IMAGE_TAG})"
+
+docker image prune -f
+
 echo "==> Deployment succeeded at tag ${IMAGE_TAG}"
